@@ -532,5 +532,7 @@ namespace WinMux
         HWND selfHwnd = GetHWND();
 		LONG ex = GetWindowLong(selfHwnd, GWL_EXSTYLE);
 		SetWindowLong(selfHwnd, GWL_EXSTYLE, ex | WS_EX_NOACTIVATE);
+
+        SetTransparent(128);
     }
 }

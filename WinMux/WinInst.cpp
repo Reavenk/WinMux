@@ -7,6 +7,7 @@
 #include "SubTitlebar.h"
 #include "SubTabs.h"
 #include <Windows.h>
+#include "resource.h"
 
 namespace WinMux
 {
@@ -144,6 +145,8 @@ namespace WinMux
 			}
         }
         this->RefreshCloseModeMenus();
+
+        SetDefaultIcons(this);
 	}
 
     WinInst::~WinInst()

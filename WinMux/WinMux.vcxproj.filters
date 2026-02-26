@@ -102,10 +102,31 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="small.ico">
+    <Image Include="Icons\AppDockIcon_128.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="WinMux.ico">
+    <Image Include="Icons\AppDockIcon_128.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Icons\AppDockIcon_16.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Icons\AppDockIcon_16.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Icons\AppDockIcon_32.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Icons\AppDockIcon_32.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Icons\AppDockIcon_64.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Icons\AppDockIcon_64.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="icons\icon5.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

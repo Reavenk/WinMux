@@ -164,8 +164,15 @@
     <ResourceCompile Include="WinMux.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="small.ico" />
-    <Image Include="WinMux.ico" />
+    <Image Include="Icons\AppDockIcon_128.ico" />
+    <Image Include="Icons\AppDockIcon_128.png" />
+    <Image Include="Icons\AppDockIcon_16.ico" />
+    <Image Include="Icons\AppDockIcon_16.png" />
+    <Image Include="Icons\AppDockIcon_32.ico" />
+    <Image Include="Icons\AppDockIcon_32.png" />
+    <Image Include="Icons\AppDockIcon_64.ico" />
+    <Image Include="Icons\AppDockIcon_64.png" />
+    <Image Include="icons\icon5.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
