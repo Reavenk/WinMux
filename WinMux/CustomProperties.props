@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <wxWidgetsRoot>D:\Repos\wxWidgets3.3.1</wxWidgetsRoot>
+    <wxWidgetsBuild>D:\Repos\wxWidgets3.3.1\build</wxWidgetsBuild>
+    <isDbg>d</isDbg>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(wxWidgetsRoot)\include;$(wxWidgetsBuild)\lib\vc_$(PreferredToolArchitecture)_dll\mswu$(isDbg);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(wxWidgetsBuild)\lib\vc_$(Platform)_dll</AdditionalLibraryDirectories>
+      <AdditionalDependencies>wxmsw33u$(isDbg)_core.lib;wxbase33u$(isDbg).lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="wxWidgetsRoot">
+      <Value>$(wxWidgetsRoot)</Value>
+    </BuildMacro>
+    <BuildMacro Include="wxWidgetsBuild">
+      <Value>$(wxWidgetsBuild)</Value>
+    </BuildMacro>
+    <BuildMacro Include="isDbg">
+      <Value>$(isDbg)</Value>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

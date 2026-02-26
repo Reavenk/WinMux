@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="WinMux/WinMux.vcxproj" Id="f3c0a962-0f9b-4ba9-a9f2-cb7243724ecd" />
+</Solution>
