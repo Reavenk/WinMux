@@ -14,7 +14,7 @@ namespace WinMux
 			Text = 0,
 			SysIcon,
 			PulldownButton,
-			//MinMaxButton, // TODO
+			MinMaxButton,
 			CloseButton,
 			Totalnum
 		};
@@ -57,6 +57,7 @@ namespace WinMux
 		void OnMouseMotionEvent(wxMouseEvent& evt);
 		void OnMouseLeftDownEvent(wxMouseEvent& evt);
 		void OnMouseLeftUpEvent(wxMouseEvent& evt);
+		void OnMouseLeftDoubleClickEvent(wxMouseEvent& evt);
 		void OnMouseCaptureChangedEvent(wxMouseCaptureChangedEvent& evt);
 		void OnMouseCaptureLostEvent(wxMouseCaptureLostEvent& evt);
 

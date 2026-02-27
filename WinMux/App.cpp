@@ -189,7 +189,7 @@ namespace WinMux
 
                 // First WinInst directly below is what we're going to drop on to.
                 wxPoint clientMousePos = wi->ScreenToClient(globalMousePos);
-                return wi->GetPreviewDrop(clientMousePos);
+                return wi->GetPreviewDropOverlayDst(clientMousePos);
             }
             // Illegal state would only happen if winInstRootHwnds and winInsts
             // are desynced.
@@ -422,7 +422,7 @@ namespace WinMux
 
             bool doStart = false;
             bool doCancel = false;
-            bool rejectSelf = false;
+            bool rejectSelf = false; // If true, window belongs to our app
             App& app = App::GetAppInst();
             {
                 std::lock_guard mutexScope(app.winRootHwndsMutex);

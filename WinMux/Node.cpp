@@ -326,30 +326,31 @@ namespace WinMux
 
 	void Node::ApplyCachedlayout(const Context& ctx)
 	{
-		switch(this->type)
+		ApplyNodeLayout(this->pos, this->size, ctx);
+	}
+
+	void Node::ApplyNodeLayout(const wxPoint& manualPos, const wxSize& manualSize, const Context& ctx)
+	{
+		switch (this->type)
 		{
 		case NodeType::Window:
 			assert(this->titlebar != nullptr);
 			this->titlebar->Show(true);
-			this->titlebar->SetSize(
-				pos.x, 
-				pos.y,
-				size.x,
-				ctx.titleHeight);
+			this->titlebar->SetSize(manualPos.x, manualPos.y, manualSize.x, ctx.titleHeight);
 
-			if(this->winHandle != NULL) // !TODO: Convert this to an assert when finally implemented
+			if (this->winHandle != NULL) // !TODO: Convert this to an assert when finally implemented
 			{
 				// SWP_NOSENDCHANGING to override minimum size constraint.
 				// Although may not be enough for all cases of WM_GETMINMAXINFO
 				::ShowWindow(this->winHandle, SW_SHOW);
 				SetWindowPos(
-					this->winHandle, 
-					NULL, 
-					pos.x, 
-					pos.y + ctx.titleHeight, 
-					size.x, 
-					size.y - ctx.titleHeight, 
-					SWP_DEFERERASE|SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOZORDER|SWP_NOSENDCHANGING );
+					this->winHandle,
+					NULL,
+					manualPos.x,
+					manualPos.y + ctx.titleHeight,
+					manualSize.x,
+					manualSize.y - ctx.titleHeight,
+					SWP_DEFERERASE | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_NOSENDCHANGING);
 
 				assert(children.size() == 0);
 			}
@@ -364,19 +365,15 @@ namespace WinMux
 		case NodeType::Tabs:
 			assert(children.size() != 0);
 			assert(this->tabsBar != nullptr);
-			this->tabsBar->SetSize(
-				pos.x,
-				pos.y,
-				size.x,
-				ctx.tabHeight);
+			this->tabsBar->SetSize(manualPos.x, manualPos.y, manualSize.x, ctx.tabHeight);
 
-			assert(this->activeTab >=0 && this->activeTab < children.size());
-			for(size_t i = 0; i < children.size(); ++i)
+			assert(this->activeTab >= 0 && this->activeTab < children.size());
+			for (size_t i = 0; i < children.size(); ++i)
 			{
 				Node* child = children[i];
 				assert(child->type == NodeType::Window);
 
-				if(i == this->activeTab)
+				if (i == this->activeTab)
 				{
 					child->ApplyCachedlayout(ctx);
 				}

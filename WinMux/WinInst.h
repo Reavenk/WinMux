@@ -10,8 +10,9 @@ namespace WinMux
 {
 	enum DirtyFlags
 	{
-		Layout = 1 << 0,
-		Sashes = 1 << 1,
+		Layout			= 1 << 0,
+		Sashes			= 1 << 1,
+		FreshMaxChange	= 1 << 2,
 		All = ~0
 	};
 
@@ -88,6 +89,12 @@ namespace WinMux
 			MENU_DetachAll,
 			MENU_CloseAll,
 		};
+		enum class DragCursor
+		{
+			None,
+			Horiz,
+			Vert
+		};
 
 	private:
 		/// <summary>
@@ -137,6 +144,8 @@ namespace WinMux
 		wxMenuItem* menuClose_Destroy = nullptr;
 		wxMenuItem* menuClose_Release = nullptr;
 		wxMenuItem* menuClose_Close = nullptr;
+
+		Node* maximizedWinNode = nullptr;
 
 	private:
 		void RegisterNode(Node* node, bool cacheOrigWinProperties = true);
@@ -276,7 +285,11 @@ namespace WinMux
 
 		void InjectExistingWinNodeAsRoot(Node* winNode);
 
-		OverlapDropDst GetPreviewDrop(const wxPoint& pt);
+		OverlapDropDst GetPreviewDropOverlayDst(const wxPoint& pt);
+
+		inline bool HasMaximizedWindow() const { return this->maximizedWinNode != nullptr; }
+		inline bool IsMaximized(Node* n)  const {return this->maximizedWinNode == n; }
+		void SetWinNodeMaximized(Node* winNode);
 
 	private:
 		Node* _innerDock(HWND hwnd, HANDLE process, Node* where, DockDir dir, int idx);
@@ -285,6 +298,7 @@ namespace WinMux
 		void DeleteAllSashes();
 		bool UpdateSash(Node*a, Node*b);
 		void UpdateContainerSashes(Node* containerNode, bool recurse = true);
+		void SetDragCursor(DragCursor cursor);
 
 		void RefreshCloseModeMenus();
 
@@ -295,8 +309,8 @@ namespace WinMux
 		void DetachAll();
 
 		void RefreshLayout();
-		void RefreshLayout(bool layout, bool sashes);
-		void FlagDirty(bool layout = true, bool sashes = true);
+		void RefreshLayout(bool layout, bool sashes, bool freshMax);
+		void FlagDirty(bool layout = true, bool sashes = true, bool freshMax = false);
 
 	public:
 		void OnWinEvent_TitleChanged(HWND hwnd);

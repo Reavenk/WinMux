@@ -431,12 +431,13 @@ namespace WinMux
 
     void WinInst::RefreshLayout()
     {
-        bool layout = (this->dirtyFlags & DirtyFlags::Layout) != 0;
-        bool sashes = (this->dirtyFlags & DirtyFlags::Sashes) != 0;
-        RefreshLayout(layout, sashes);
+        bool layout     = (this->dirtyFlags & DirtyFlags::Layout) != 0;
+        bool sashes     = (this->dirtyFlags & DirtyFlags::Sashes) != 0;
+        bool freshMax   = (this->dirtyFlags & DirtyFlags::FreshMaxChange) != 0;
+        RefreshLayout(layout, sashes, freshMax);
     }
 
-    void WinInst::RefreshLayout(bool layout, bool sashes)
+    void WinInst::RefreshLayout(bool layout, bool sashes, bool freshMax)
     {
         // Regardless of what happens, a whole refresh of any part is
         // assumed (for now) to make sash dragging unsafe
@@ -445,6 +446,59 @@ namespace WinMux
 		    this->draggedSash = nullptr;
             this->DeleteAllSashes();
         }
+
+        if(freshMax)
+        {
+            if(this->maximizedWinNode == nullptr)
+            {
+                // No maximized window node
+                for(Node* n : this->nodes)
+                {
+                    if (n->type == NodeType::Window)
+                    { 
+                        n->titlebar->Show();
+                        if(n->winHandle != nullptr)
+                            ShowWindow(n->winHandle, SW_SHOW);
+                    }
+                    else if(n->type == NodeType::Tabs)
+                    {
+                        // TODO: VALI for tabs
+                        n->tabsBar->Show();
+                    }
+
+                }
+            }
+            else
+            {
+                this->SetDragCursor(DragCursor::None);
+                // A maximized window node
+                for(Node* n : this->nodes)
+                {
+                    if(n->type == NodeType::Window)
+                    {
+                        if(n == this->maximizedWinNode)
+                        {
+						    n->titlebar->Show();
+                            if(n->winHandle != nullptr)
+                                ShowWindow(n->winHandle, SW_SHOW);
+                        }
+                        else
+                        {
+						    n->titlebar->Hide();
+                            if(n->winHandle != nullptr)
+                                ShowWindow(n->winHandle, SW_HIDE);
+                        }
+                    }
+                    else if(n->type == NodeType::Tabs)
+                    {
+                        // TODO: VALI for tabs
+                        n->tabsBar->Hide();
+                    }
+
+                }
+            }
+        }
+        this->dirtyFlags &= ~this->dirtyFlags & DirtyFlags::FreshMaxChange;
 
         if(layout)
         { 
@@ -456,12 +510,20 @@ namespace WinMux
 		    rootSize.x -= ctx.horizWinPadding * 2;
 		    rootSize.y -= ctx.vertWinPadding * 2;
 
-		    if (this->root != nullptr)
-		    {
-			    this->root->CalculateMinSizeRecursive(ctx);
-			    this->root->CacheCalculatedSizeRecursive(rootPos, rootSize, ctx);
-			    root->ApplyCachedlayout(ctx);
-		    }
+            if(this->HasMaximizedWindow())
+            {
+                // TODO: VALI is a window
+                this->maximizedWinNode->ApplyNodeLayout(rootPos, rootSize, ctx);
+            }
+            else
+            {
+		        if (this->root != nullptr)
+		        {
+			        this->root->CalculateMinSizeRecursive(ctx);
+			        this->root->CacheCalculatedSizeRecursive(rootPos, rootSize, ctx);
+			        root->ApplyCachedlayout(ctx);
+		        }
+            }
             this->dirtyFlags &= ~this->dirtyFlags & DirtyFlags::Layout;
         }
 
@@ -473,7 +535,6 @@ namespace WinMux
             }
             this->dirtyFlags &= ~this->dirtyFlags & DirtyFlags::Sashes;
         }
-
     }
 
     void WinInst::RegenerateSashes(Node* node, std::map<SashKey, Sash*>& sashes)
@@ -575,6 +636,25 @@ namespace WinMux
         {
             for(Node* child : containerNode->children)
                 UpdateContainerSashes(child, true);
+        }
+    }
+
+    void WinInst::SetDragCursor(DragCursor cursor)
+    {
+        switch(cursor)
+        {
+        case DragCursor::Horiz:
+            this->SetCursor(wxCursor(wxCURSOR_SIZEWE));
+            break;
+        case DragCursor::Vert:
+            this->SetCursor(wxCursor(wxCURSOR_SIZENS));
+            break;
+        case DragCursor::None:
+            this->SetCursor(wxNullCursor);
+            break;
+        default:
+            assert(!"Unknown drag cursor type");
+            break;
         }
     }
 
@@ -697,13 +777,16 @@ namespace WinMux
 		assert(this->VALI());
     }
 
-    void WinInst::FlagDirty(bool layout, bool sashes)
+    void WinInst::FlagDirty(bool layout, bool sashes, bool freshMax)
     {
         if(layout)
             this->dirtyFlags |= DirtyFlags::Layout;
 
         if(sashes)
             this->dirtyFlags |= DirtyFlags::Sashes;
+
+        if(freshMax)
+            this->dirtyFlags |= DirtyFlags::FreshMaxChange;
 
         if(!this->refreshLayoutTimer.IsRunning())
             this->refreshLayoutTimer.Start(0, true);
@@ -774,17 +857,17 @@ namespace WinMux
 			{
 				if (s->container->type == NodeType::SplitHoriz)
 				{
-					this->SetCursor(wxCursor(wxCURSOR_SIZEWE));
+                    this->SetDragCursor(DragCursor::Horiz);
 					return s;
 				}
 				else if (s->container->type == NodeType::SplitVert)
 				{
-					this->SetCursor(wxCursor(wxCURSOR_SIZENS));
+                    this->SetDragCursor(DragCursor::Vert);
 					return s;
 				}
 			}
 		}	
-		SetCursor(wxNullCursor);
+        this->SetDragCursor(DragCursor::None);
         return nullptr;
     }
 
@@ -792,12 +875,15 @@ namespace WinMux
     {
 		this->dragState = MouseDragState::Void;
 		this->draggedSash = nullptr;
-		this->SetCursor(wxNullCursor);
+		this->SetDragCursor(DragCursor::None);
     }
 
     bool WinInst::RemoveWinNode(Node* node, bool deleteNode)
     {
         assert(node->type == NodeType::Window);
+
+        if(node == this->maximizedWinNode)
+            this->SetWinNodeMaximized(nullptr);
 
         // Erase mapping records
 		if(node->winHandle != nullptr)
@@ -1180,9 +1266,20 @@ namespace WinMux
         assert(this->VALI());
     }
 
-    OverlapDropDst WinInst::GetPreviewDrop(const wxPoint& pt)
+    OverlapDropDst WinInst::GetPreviewDropOverlayDst(const wxPoint& pt)
     {
         const Context& ctx = this->GetAppContext();
+        if(this->HasMaximizedWindow())
+        {
+            assert(this->root != nullptr);
+			wxRect rclient = this->GetClientRect();
+			return OverlapDropDst(
+				this,
+				this->maximizedWinNode,
+				DockDir::Into,
+				rclient);
+        }
+
         const int dropRad = ctx.intoDropPrevSize / 2;
         if(this->root == nullptr)
         {
@@ -1292,6 +1389,20 @@ namespace WinMux
         return OverlapDropDst::Inactive();
     }
 
+    void WinInst::SetWinNodeMaximized(Node* winNode)
+    {
+        if(this->maximizedWinNode == winNode)
+        {
+            this->maximizedWinNode = nullptr;
+            this->FlagDirty(true, true, true);
+            return;
+        }
+
+        this->maximizedWinNode = winNode;
+        this->FlagDirty(true, true, true);
+        return;
+    }
+
     void WinInst::RegisterNode(Node* node, bool cacheOrigWinProperties)
     {
         assert(!nodes.contains(node));
@@ -1323,10 +1434,20 @@ namespace WinMux
 					this->awaitGUITimer.Start(ctx.millisecondsAwaitGUI, true);
 				}
             }
+
+			if (this->HasMaximizedWindow())
+			{
+                node->titlebar->Show(false);
+				if (node->winHandle != nullptr)
+					ShowWindow(node->winHandle, SW_HIDE);
+			}
         }
         else if(node->type == NodeType::Tabs)
         {
             node->tabsBar = new SubTabs(this, node);
+
+            if(this->HasMaximizedWindow())
+                node->tabsBar->Hide();
         }
     }
 
@@ -1427,7 +1548,7 @@ namespace WinMux
     void WinInst::OnSizeEvent(wxSizeEvent& event)
     {
         event.Skip(true);
-        RefreshLayout(true, true);
+        RefreshLayout(true, true, false);
     }
 
     void WinInst::OnPaintEvent(wxPaintEvent& event)
@@ -1557,7 +1678,7 @@ namespace WinMux
     {
 		this->dragState = MouseDragState::Void;
 		this->draggedSash = nullptr;
-		this->SetCursor(wxNullCursor);
+		this->SetDragCursor(DragCursor::None);
     }
 
 	void WinInst::OnMouseEnterEvent(wxMouseEvent& event)
@@ -1575,7 +1696,7 @@ namespace WinMux
 	void WinInst::OnMouseLeaveEvent(wxMouseEvent& /*event*/)
     {
         if(dragState != MouseDragState::DraggingSash)
-            SetCursor(wxNullCursor);
+            this->SetDragCursor(DragCursor::None);
     }
 
     void WinInst::OnTimerEvent_WaitGUIProcess(wxTimerEvent& event)

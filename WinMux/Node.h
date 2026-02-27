@@ -50,6 +50,7 @@ namespace WinMux
 		void CacheCalculatedSizeRecursive(const wxPoint& pos, const wxSize& size, const Context& ctx);
 		
 		void ApplyCachedlayout(const Context& ctx);
+		void ApplyNodeLayout(const wxPoint& pos, const wxSize& size, const Context& ctx);
 
 		int GetChildIndex(Node* child);
 		bool SwapChild(Node* src, Node* dst, bool deparentSrc = true);

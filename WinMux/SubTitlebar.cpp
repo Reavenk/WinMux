@@ -16,6 +16,7 @@ namespace WinMux
 		EVT_MOTION(SubTitlebar::OnMouseMotionEvent)
 		EVT_LEFT_DOWN(SubTitlebar::OnMouseLeftDownEvent)
 		EVT_LEFT_UP(SubTitlebar::OnMouseLeftUpEvent)
+		EVT_LEFT_DCLICK(SubTitlebar::OnMouseLeftDoubleClickEvent)
 		EVT_MOUSE_CAPTURE_CHANGED(SubTitlebar::OnMouseCaptureChangedEvent)
 		EVT_MOUSE_CAPTURE_LOST(SubTitlebar::OnMouseCaptureLostEvent)
 
@@ -60,10 +61,25 @@ namespace WinMux
 		gc->StrokePath(path);
 	}
 
-	// TODO:
-	//void DrawPathMinMax(const wxRect& rgn, wxGraphicsContext* gc, double btnRad, bool min)
-	//{
-	//}
+	void DrawPathMinMax(const wxRect& rgn, wxGraphicsContext* gc, double btnRad, bool max)
+	{
+		double cx = rgn.x + rgn.width / 2.0;
+		double cy = rgn.y + rgn.height / 2.0;
+		gc->SetPen(*wxBLACK_PEN);
+		wxGraphicsPath path = gc->CreatePath();
+		double hRad = btnRad * 0.4;
+		double vRad = btnRad * 0.4;
+		if(max)
+		{
+			path.AddRectangle(cx - hRad, cy - vRad, hRad * 2.0, vRad * 2.0);
+		}
+		else
+		{
+			path.MoveToPoint(cx - hRad, cy);
+			path.AddLineToPoint(cx + hRad, cy);
+		}
+		gc->StrokePath(path);
+	}
 
 	void SubTitlebar::OnPaintEvent(wxPaintEvent& event)
 	{
@@ -123,17 +139,36 @@ namespace WinMux
 
 			wxRect winOptsRgn = GetFeatureRgn(clientRect, Feature::PulldownButton, ctx);
 			//dc.DrawRectangle(winOptsRgn);
-			wxBrush btnBrush(ToWxColor(pulldownColor));
+			wxBrush btnPullDownBrush(ToWxColor(pulldownColor));
 			//dc.SetBrush(blueBrush);
-			gc->SetBrush(btnBrush);
-			wxGraphicsPath path = gc->CreatePath();
-			path.AddCircle( 
+			gc->SetBrush(btnPullDownBrush);
+			wxGraphicsPath pathPulldown = gc->CreatePath();
+			pathPulldown.AddCircle( 
 				winOptsRgn.x + winOptsRgn.width / 2.0, 
 				winOptsRgn.y + winOptsRgn.height / 2.0, 
 				ctx.titleBoxButtonIconDim / 2.0 );
-			gc->FillPath(path);
+			gc->FillPath(pathPulldown);
 
 			DrawPathPulldown(winOptsRgn, gc, winOptsRgn.width / 2.0);
+
+			// MinMax commands
+			//////////////////////////////////////////////////
+			const Color3 minMaxColor = ctx.btncols_TitleBtn.GetColor(
+				this->currentClickedDown == Feature::MinMaxButton,
+				this->currentHoverFeature == Feature::MinMaxButton);
+
+			wxRect winMinMaxRgn = GetFeatureRgn(clientRect, Feature::MinMaxButton, ctx);
+			wxBrush btnMinMaxBrush(ToWxColor(minMaxColor));
+			gc->SetBrush(btnMinMaxBrush);
+			wxGraphicsPath pathMinMax = gc->CreatePath();
+			pathMinMax.AddCircle(
+				winMinMaxRgn.x + winMinMaxRgn.width / 2.0,
+				winMinMaxRgn.y + winMinMaxRgn.height / 2.0,
+				ctx.titleBoxButtonIconDim / 2.0);
+			gc->FillPath(pathMinMax);
+
+			bool isMaxed = this->winOwner->IsMaximized(this->node);
+			DrawPathMinMax(winMinMaxRgn, gc, winMinMaxRgn.width / 2.0, !isMaxed);
 
 			//	Close button
 			//////////////////////////////////////////////////
@@ -175,7 +210,7 @@ namespace WinMux
 				wxRect(
 					entireRgn.x + ctx.titleBoxRegionWidth,
 					entireRgn.y,
-					entireRgn.width - 3 * ctx.titleBoxRegionWidth,
+					entireRgn.width - 4 * ctx.titleBoxRegionWidth,
 					entireRgn.height);
 
 		case Feature::SysIcon:
@@ -189,6 +224,14 @@ namespace WinMux
 		case Feature::PulldownButton:
 			return
 				wxRect(
+					entireRgn.x + entireRgn.width - 3 * ctx.titleBoxRegionWidth,
+					entireRgn.y,
+					ctx.titleBoxRegionWidth,
+					entireRgn.height);
+
+		case Feature::MinMaxButton:
+			return
+				wxRect(
 					entireRgn.x + entireRgn.width - 2 * ctx.titleBoxRegionWidth,
 					entireRgn.y,
 					ctx.titleBoxRegionWidth,
@@ -197,7 +240,7 @@ namespace WinMux
 		case Feature::CloseButton:
 			return
 				wxRect(
-					entireRgn.x + entireRgn.width - ctx.titleBoxRegionWidth,
+					entireRgn.x + entireRgn.width - 1 * ctx.titleBoxRegionWidth,
 					entireRgn.y,
 					ctx.titleBoxRegionWidth,
 					entireRgn.height);
@@ -328,6 +371,7 @@ namespace WinMux
 			break;
 		case Feature::SysIcon:
 		case Feature::PulldownButton:
+		case Feature::MinMaxButton:
 		case Feature::CloseButton:
 			this->CaptureMouse();
 			break;
@@ -346,8 +390,14 @@ namespace WinMux
 
 		if(this->HasCapture())
 		{
+			// We can't reset this later because an action may close this window,
+			// which deletes this titlebar, which makes "this" unusable right 
+			// after handling the click.
+			Feature clickedFeature = this->currentClickedDown;
+			this->currentClickedDown = Feature::Null;
+
 			this->ReleaseMouse();
-			switch(this->currentClickedDown)
+			switch(clickedFeature)
 			{
 			case Feature::SysIcon:
 				if(this->node->winHandle != nullptr)
@@ -394,12 +444,26 @@ namespace WinMux
 				}
 				break;
 
+			case Feature::MinMaxButton:
+				{
+					this->winOwner->SetWinNodeMaximized(this->node);
+				}
+				break;
+
 			case Feature::CloseButton:
 				winOwner->CloseManagedWindow(this->node);
 				break;
 			}
 		}
 		//Refresh();
+	}
+
+	void SubTitlebar::OnMouseLeftDoubleClickEvent(wxMouseEvent& evt)
+	{
+		wxPoint mousePos = evt.GetPosition();
+		Feature f = HandleMouseTooltip(mousePos);
+		if(f == Feature::Text)
+			this->winOwner->SetWinNodeMaximized(this->node);
 	}
 
 	void SubTitlebar::OnMouseCaptureChangedEvent(wxMouseCaptureChangedEvent& evt)
