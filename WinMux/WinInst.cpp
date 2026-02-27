@@ -50,6 +50,7 @@ namespace WinMux
         EVT_LEAVE_WINDOW            (WinInst::OnMouseLeaveEvent)
         EVT_SIZE                    (WinInst::OnSizeEvent)
         EVT_CLOSE                   (WinInst::OnClose)
+        EVT_WINDOW_DESTROY          (WinInst::OnDestroy)
 
         EVT_TIMER                   (WinInst::TIMER_WaitForGUI,             WinInst::OnTimerEvent_WaitGUIProcess)
         EVT_TIMER                   (WinInst::TIMER_RefreshLayout,          WinInst::OnTimerEvent_RefreshLayout)
@@ -1403,6 +1404,24 @@ namespace WinMux
         return;
     }
 
+	void WinInst::DirectDestroy()
+	{
+		this->directDestroy = true;
+		this->Close(true);
+	}
+
+    bool WinInst::IsEmptyLayout()
+    {
+        if(this->root == nullptr)
+        {
+            assert(this->hwndToNodes.size() == 0 && this->processToNodes.size() == 0);
+            return true;
+        }
+
+        assert(this->hwndToNodes.size() > 0 || this->processToNodes.size() > 0);
+        return false;
+    }
+
     void WinInst::RegisterNode(Node* node, bool cacheOrigWinProperties)
     {
         assert(!nodes.contains(node));
@@ -1517,32 +1536,40 @@ namespace WinMux
 
     void WinInst::OnClose(wxCloseEvent & event)
     {
-        switch(this->closeMode)
+        if(!directDestroy)
         {
-        case CloseMode::ReleaseAll:
-            this->ReleaseAll();
-            break;
-        case CloseMode::DestroyAll:
-            // We don't actually "destroy", we just close out its Node (but send a 
-            // "courtesy close" message) and then just let it die with the window
-            // once we destroy ourselves.
-            this->SendCloseAndForgetAll();
-            break;
-        case CloseMode::BlockingCloseAll:
-            if(this->root != nullptr)
+            switch(this->closeMode)
             {
-                this->BlockingCloseAll();
-                return;
+            case CloseMode::ReleaseAll:
+                this->ReleaseAll();
+                break;
+            case CloseMode::DestroyAll:
+                // We don't actually "destroy", we just close out its Node (but send a 
+                // "courtesy close" message) and then just let it die with the window
+                // once we destroy ourselves.
+                this->SendCloseAndForgetAll();
+                break;
+            case CloseMode::BlockingCloseAll:
+                if(this->root != nullptr)
+                {
+                    this->BlockingCloseAll();
+                    return;
+                }
+                break;
             }
-            break;
+            assert(this->root == nullptr);
+            assert(this->processToNodes.empty());
+            assert(this->hwndToNodes.empty());
         }
-        assert(this->root == nullptr);
-        assert(this->processToNodes.empty());
-        assert(this->hwndToNodes.empty());
-        this->appOwner->OnWinInstClose(this);
         this->Destroy();
 
+        this->appOwner->OnWinInstClose(this);
         //event.Skip(false);
+    }
+
+    void WinInst::OnDestroy(wxWindowDestroyEvent& event)
+    {
+        // TODO: NOP - remove event
     }
 
     void WinInst::OnSizeEvent(wxSizeEvent& event)

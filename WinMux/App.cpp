@@ -342,6 +342,35 @@ namespace WinMux
         // !TODO: App::VALI()
     }
 
+	void App::ReleaseAllAndCloseAll()
+    {
+        std::vector<WinInst*> cpy;
+        {
+            std::lock_guard mutexScope(this->winRootHwndsMutex);
+            cpy = this->winInsts;
+        }
+        for(WinInst* toClose : cpy)
+        {
+            toClose->ReleaseAll();
+            toClose->DirectDestroy();
+        }
+    }
+
+	void App::CloseAll()
+    {
+		std::vector<WinInst*> cpy;
+		{
+			std::lock_guard mutexScope(this->winRootHwndsMutex);
+			cpy = this->winInsts;
+		}
+		for (WinInst* toClose : cpy)
+		{
+			toClose->BlockingCloseAll();
+            if(toClose->IsEmptyLayout())
+                toClose->DirectDestroy();
+		}
+    }
+
 	void App::SwapWithSubbedEvents(std::queue<SystemSubscribedEvent>& dst)
     {
         evtSubMutex.lock();

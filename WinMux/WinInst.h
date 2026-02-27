@@ -146,6 +146,7 @@ namespace WinMux
 		wxMenuItem* menuClose_Close = nullptr;
 
 		Node* maximizedWinNode = nullptr;
+		bool directDestroy = false;
 
 	private:
 		void RegisterNode(Node* node, bool cacheOrigWinProperties = true);
@@ -291,6 +292,10 @@ namespace WinMux
 		inline bool IsMaximized(Node* n)  const {return this->maximizedWinNode == n; }
 		void SetWinNodeMaximized(Node* winNode);
 
+		void DirectDestroy();
+
+		bool IsEmptyLayout();
+
 	private:
 		Node* _innerDock(HWND hwnd, HANDLE process, Node* where, DockDir dir, int idx);
 
@@ -302,12 +307,6 @@ namespace WinMux
 
 		void RefreshCloseModeMenus();
 
-		void ReleaseAll();
-		void SendCloseAndForgetAll();
-		void BlockingCloseAll();
-		void NonblockingCloseAll();
-		void DetachAll();
-
 		void RefreshLayout();
 		void RefreshLayout(bool layout, bool sashes, bool freshMax);
 		void FlagDirty(bool layout = true, bool sashes = true, bool freshMax = false);
@@ -316,8 +315,15 @@ namespace WinMux
 		void OnWinEvent_TitleChanged(HWND hwnd);
 		void OnWinEvent_WindowClosed(HWND hwnd);
 
+		void ReleaseAll();
+		void SendCloseAndForgetAll();
+		void BlockingCloseAll();
+		void NonblockingCloseAll();
+		void DetachAll();
+
 	public:
 		void OnClose(wxCloseEvent& event);
+		void OnDestroy(wxWindowDestroyEvent& event);
 		void OnSizeEvent(wxSizeEvent& event);
 
 		void OnPaintEvent(wxPaintEvent& event);
@@ -349,7 +355,6 @@ namespace WinMux
 		void OnMenu_ReleaseAll(wxCommandEvent& event);
 		void OnMenu_DetachAll(wxCommandEvent& event);
 		void OnMenu_CloseAll(wxCommandEvent& event);
-
 	public:
 		bool VALI();
 

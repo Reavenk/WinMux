@@ -11,6 +11,8 @@ namespace WinMux
 		enum IDs
 		{
 			MENU_Exit,
+			MENU_ReleaseAll,
+			MENU_CloseAll,
 			MENU_NewWinMux,
 		};
 
@@ -27,6 +29,8 @@ namespace WinMux
 
 	public:
 		void OnMenu_Exit(wxCommandEvent& evt);
+		void OnMenu_ReleaseAll(wxCommandEvent& evt);
+		void OnMenu_CloseAll(wxCommandEvent& evt);
 		void OnMenu_NewWinMux(wxCommandEvent& evt);
 
 	protected:

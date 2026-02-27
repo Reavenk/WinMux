@@ -152,6 +152,9 @@ namespace WinMux
     public:
         void OnWinInstClose(WinInst* inst);
 
+        void ReleaseAllAndCloseAll();
+        void CloseAll();
+
         ////////////////////////////////////////////////////////////////////////////////
         //
         //  wxWidgets FUNCTIONALITY
