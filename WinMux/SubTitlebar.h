@@ -14,6 +14,7 @@ namespace WinMux
 			Text = 0,
 			SysIcon,
 			PulldownButton,
+			//MinMaxButton, // TODO
 			CloseButton,
 			Totalnum
 		};

@@ -31,6 +31,40 @@ namespace WinMux
 	  node(node)
 	{}
 
+	void DrawPathClose(const wxRect& rgn, wxGraphicsContext* gc, double btnRad)
+	{
+		double cx = rgn.x + rgn.width / 2.0;
+		double cy = rgn.y + rgn.height / 2.0;
+		gc->SetPen(*wxBLACK_PEN);
+		wxGraphicsPath path = gc->CreatePath();
+		double crossRad = btnRad * 0.4;
+		path.MoveToPoint(cx - crossRad, cy - crossRad);
+		path.AddLineToPoint(cx + crossRad, cy + crossRad);
+		//
+		path.MoveToPoint(cx - crossRad, cy + crossRad);
+		path.AddLineToPoint(cx + crossRad, cy - crossRad);
+		gc->StrokePath(path);
+	}
+
+	void DrawPathPulldown(const wxRect& rgn, wxGraphicsContext* gc, double btnRad)
+	{
+		double cx = rgn.x + rgn.width / 2.0;
+		double cy = rgn.y + rgn.height / 2.0;
+		gc->SetPen(*wxBLACK_PEN);
+		wxGraphicsPath path = gc->CreatePath();
+		double crossRad = btnRad * 0.4;
+		double vertOffs = btnRad * 0.2;
+		path.MoveToPoint(	cx - crossRad,	cy - vertOffs);
+		path.AddLineToPoint(cx,				cy + vertOffs);
+		path.AddLineToPoint(cx + crossRad,	cy - vertOffs);
+		gc->StrokePath(path);
+	}
+
+	// TODO:
+	//void DrawPathMinMax(const wxRect& rgn, wxGraphicsContext* gc, double btnRad, bool min)
+	//{
+	//}
+
 	void SubTitlebar::OnPaintEvent(wxPaintEvent& event)
 	{
 		wxPaintDC dc(this);
@@ -99,6 +133,8 @@ namespace WinMux
 				ctx.titleBoxButtonIconDim / 2.0 );
 			gc->FillPath(path);
 
+			DrawPathPulldown(winOptsRgn, gc, winOptsRgn.width / 2.0);
+
 			//	Close button
 			//////////////////////////////////////////////////
 			const Color3 closeColor = ctx.btncols_CloseBtn.GetColor(
@@ -114,6 +150,8 @@ namespace WinMux
 				ctx.titleBoxButtonIconDim / 2.0);
 			gc->SetBrush(closeBtnBrush);
 			gc->FillPath(closeBtnPath);
+
+			DrawPathClose(closeBtnRgn, gc, closeBtnRgn.width/2.0);
 		}
 		else if(this->node->process != nullptr)
 		{
