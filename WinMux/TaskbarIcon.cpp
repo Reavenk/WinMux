@@ -1,5 +1,6 @@
 #include "TaskbarIcon.h"
 #include "App.h"
+#include "resource.h"
 
 namespace WinMux
 {
@@ -14,7 +15,13 @@ namespace WinMux
 		: wxTaskBarIcon(),
 		  app(app)
 	{
+		HICON hIcon = (HICON)::LoadImage(GetModuleHandle(0), MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT);
+		this->icon.CreateFromHICON(hIcon);
+		this->SetIcon(this->icon);
 	}
+
+	TaskbarIcon::~TaskbarIcon()
+	{}
 
 	wxMenu* TaskbarIcon::CreatePopupMenu()
 	{

@@ -57,15 +57,15 @@ namespace WinMux
 		this->SpawnInst();
 
 		this->taskbarIcon = new TaskbarIcon(this);
-        // TODO: Change tutorial text for taskbar icon
-		if (!this->taskbarIcon->SetIcon(wxArtProvider::GetBitmapBundle(wxART_WX_LOGO, wxART_OTHER, wxSize(32, 32)),
-			"wxTaskBarIcon Sample\n"
-			"With a very, very, very, very\n"
-			"long tooltip whose length is\n"
-			"greater than 64 characters."))
-		{
-			wxLogError("Could not set icon.");
-		}
+        //// TODO: Change tutorial text for taskbar icon
+		//if (!this->taskbarIcon->SetIcon(wxArtProvider::GetBitmapBundle(wxART_WX_LOGO, wxART_OTHER, wxSize(32, 32)),
+		//	"wxTaskBarIcon Sample\n"
+		//	"With a very, very, very, very\n"
+		//	"long tooltip whose length is\n"
+		//	"greater than 64 characters."))
+		//{
+		//	wxLogError("Could not set icon.");
+		//}
 		//this->taskbarIcon->ShowBalloon("Testing", "Testing testing");
 
 		hook_titleChange    = ::SetWinEventHook(EVENT_OBJECT_NAMECHANGE, EVENT_OBJECT_NAMECHANGE, nullptr, Hook_OnTitleChanged, 0, 0, 0);

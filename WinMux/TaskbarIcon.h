@@ -19,6 +19,9 @@ namespace WinMux
 
 	public:
 		TaskbarIcon(App* app);
+		~TaskbarIcon();
+
+		wxIcon icon;
 
 		virtual wxMenu* CreatePopupMenu() override;
 
