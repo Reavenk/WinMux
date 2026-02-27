@@ -112,17 +112,17 @@ namespace WinMux
         menuBar->Append(menuCommands,   "Commands");
         menuBar->Append(menuHelp,       "&Help");
 
-        SetMenuBar(menuBar);
+        this->SetMenuBar(menuBar);
 
-        CreateStatusBar();
-        SetStatusText("Welcome to wxWidgets!");
+        this->CreateStatusBar();
+        this->SetStatusText("Welcome to wxWidgets!");
 
-        Bind(wxEVT_MENU, &WinInst::OnAbout, this, wxID_ABOUT);
-        Bind(wxEVT_MENU, &WinInst::OnExit, this, wxID_EXIT);
+        this->Bind(wxEVT_MENU, &WinInst::OnAbout, this, wxID_ABOUT);
+        this->Bind(wxEVT_MENU, &WinInst::OnExit, this, wxID_EXIT);
 
         // SETUP SYSTEM MENU
         //////////////////////////////////////////////////
-        HMENU sysMenu = (HMENU)GetSystemMenu(this->GetHWND(), FALSE);
+        HMENU sysMenu = (HMENU)::GetSystemMenu(this->GetHWND(), FALSE);
         if(sysMenu != nullptr)
         {
 			// Counter to insert entries at the top. To append to the bottom use:
@@ -130,18 +130,18 @@ namespace WinMux
             int menuPosIns = 0;
 
 			// Create, populate and add the "Manage All" submenu
-			HMENU subMenuManip = CreatePopupMenu();
+			HMENU subMenuManip = ::CreatePopupMenu();
 			if (subMenuManip != NULL)
 			{
 				// Add the submenu to the System Menu
-				InsertMenu(sysMenu, menuPosIns, MF_BYPOSITION | MF_POPUP, (UINT_PTR)subMenuManip, TEXT("Manage All"));
+				::InsertMenu(sysMenu, menuPosIns, MF_BYPOSITION | MF_POPUP, (UINT_PTR)subMenuManip, TEXT("Manage All"));
 				++menuPosIns;
 				//
 				// Add submenu entries
-				InsertMenu(subMenuManip, -1, MF_BYPOSITION, MENU_ReleaseAll,    TEXT("Release All"));
-				InsertMenu(subMenuManip, -1, MF_BYPOSITION, MENU_DetachAll,     TEXT("Detach All All"));
-				InsertMenu(subMenuManip, -1, MF_BYPOSITION, MENU_CloseAll,      TEXT("Close All"));
-				InsertMenu(subMenuManip, -1, MF_BYPOSITION, wxID_EXIT,          TEXT("Force Close All"));
+				::InsertMenu(subMenuManip, -1, MF_BYPOSITION, MENU_ReleaseAll, TEXT("Release All"));
+				::InsertMenu(subMenuManip, -1, MF_BYPOSITION, MENU_DetachAll, TEXT("Detach All All"));
+				::InsertMenu(subMenuManip, -1, MF_BYPOSITION, MENU_CloseAll, TEXT("Close All"));
+				::InsertMenu(subMenuManip, -1, MF_BYPOSITION, wxID_EXIT, TEXT("Force Close All"));
 			}
         }
         this->RefreshCloseModeMenus();
@@ -156,11 +156,11 @@ namespace WinMux
 
     Node* WinInst::Dock(HWND hwnd, HANDLE process, Node* where, DockDir dir, int idx)
     {
-        Node* ret = _innerDock(hwnd, process, where, dir, idx);
-        assert(VALI());
+        Node* ret = this->_innerDock(hwnd, process, where, dir, idx);
+        assert(this->VALI());
 
         if(ret != nullptr)
-            FlagDirty();
+            this->FlagDirty();
             
         return ret;
     }
@@ -173,8 +173,8 @@ namespace WinMux
         if (this->root == nullptr)
         {
             this->root = Node::MakeWinNode(nullptr, 1.0f, hwnd, process);
-            RegisterNode(this->root);
-            Refresh(); // TODO: Remove and handle refresh correctly
+            this->RegisterNode(this->root);
+            this->Refresh(); // TODO: Remove and handle refresh correctly
             return this->root;
         }
 
@@ -184,8 +184,8 @@ namespace WinMux
             { 
 			    Node* newWinNode = Node::MakeWinNode(where, 1.0f, hwnd, process);
 			    where->children.push_back(newWinNode);
-			    RegisterNode(newWinNode);
-			    Refresh();
+			    this->RegisterNode(newWinNode);
+			    this->Refresh();
 			    return newWinNode;
             }
 		}
@@ -221,8 +221,8 @@ namespace WinMux
                 // The newest item goes on top for now, may change mind about this later.
                 tabsNode->activeTab = 1;
                 //
-                RegisterNode(tabsNode);
-                RegisterNode(newWinNode);
+                this->RegisterNode(tabsNode);
+                this->RegisterNode(newWinNode);
                 return newWinNode;
             }
             // Else, we're doing a Top/Left/Bottom/Right - and we'll need to convert that
@@ -254,8 +254,8 @@ namespace WinMux
                     newGrainNode->children.push_back(where);
                     newGrainNode->children.push_back(newWinNode);
                 }
-                RegisterNode(newGrainNode);
-                RegisterNode(newWinNode);
+                this->RegisterNode(newGrainNode);
+                this->RegisterNode(newWinNode);
                 return newWinNode;
             }
 
@@ -287,8 +287,8 @@ namespace WinMux
 
                     oldParent->SwapChild(where, newVertInner, false);
                     where->prop = 0.5f;
-                    RegisterNode(newVertInner);
-                    RegisterNode(newWinNode);
+                    this->RegisterNode(newVertInner);
+                    this->RegisterNode(newWinNode);
                     return newWinNode;
                 }
             }
@@ -300,7 +300,7 @@ namespace WinMux
                     Node* newWinNode = Node::MakeWinNode(where->parent, where->parent->AvgChildProp(), hwnd, process);
                     where->parent->InsertAsChild(newWinNode, where, lowerSide ? Insertion::Before : Insertion::After);
                     where->parent->NormalizeChildProportions();
-                    RegisterNode(newWinNode);
+                    this->RegisterNode(newWinNode);
                     return newWinNode;
                 }
                 else // Make a horizontal split in the vertical parent
@@ -318,8 +318,8 @@ namespace WinMux
 
                     where->prop = 0.5f;
                     oldParent->SwapChild(where, newHorizInner, false);
-                    RegisterNode(newHorizInner);
-                    RegisterNode(newWinNode);
+                    this->RegisterNode(newHorizInner);
+                    this->RegisterNode(newWinNode);
                     return newWinNode;
                 }
             }
@@ -339,7 +339,7 @@ namespace WinMux
                 newWinNode->prop = 1.0f / (where->children.size() - 1);
                 where->NormalizeChildProportions();
             }
-			RegisterNode(newWinNode);
+			this->RegisterNode(newWinNode);
 			return newWinNode;
 		}
 
@@ -369,7 +369,7 @@ namespace WinMux
             Node* newWinNode = Node::MakeWinNode(nullptr, where->AvgChildProp(), hwnd, process);
             where->InsertAsChild(newWinNode, insertIndex);
             where->NormalizeChildProportions();
-            RegisterNode(newWinNode);
+            this->RegisterNode(newWinNode);
             return newWinNode;
         }
         // Root vertical split into horizontal, or vice versa
@@ -388,8 +388,8 @@ namespace WinMux
 
             where->prop = 0.5f;
             this->root = newVertRoot;
-            RegisterNode(newVertRoot);
-            RegisterNode(newWinNode);
+            this->RegisterNode(newVertRoot);
+            this->RegisterNode(newWinNode);
             return newWinNode;
         }
         // Non-root case of splitting vertical into horizontal, or vice versa
@@ -404,7 +404,7 @@ namespace WinMux
                 ++idx;
             where->parent->InsertAsChild(newWinNode, idx);
             where->parent->NormalizeChildProportions();
-            RegisterNode(newWinNode);
+            this->RegisterNode(newWinNode);
             return newWinNode;
         }   
     }
@@ -416,15 +416,15 @@ namespace WinMux
 		sei.lpFile = exePath;
 		sei.nShow = SW_SHOWNORMAL;
 
-		if (!ShellExecuteEx(&sei))
+		if (!::ShellExecuteEx(&sei))
 			return nullptr;
 
         Node* ret = Dock((HWND)NULL, sei.hProcess, where, dir, idx);
         if(ret == nullptr)
         {
             //assert(false, "Could not Dock booted EXE path");
-            TerminateProcess(sei.hProcess, 1);
-            CloseHandle(sei.hProcess);
+            ::TerminateProcess(sei.hProcess, 1);
+            ::CloseHandle(sei.hProcess);
         }
         return ret;
     }
@@ -434,7 +434,7 @@ namespace WinMux
         bool layout     = (this->dirtyFlags & DirtyFlags::Layout) != 0;
         bool sashes     = (this->dirtyFlags & DirtyFlags::Sashes) != 0;
         bool freshMax   = (this->dirtyFlags & DirtyFlags::FreshMaxChange) != 0;
-        RefreshLayout(layout, sashes, freshMax);
+        this->RefreshLayout(layout, sashes, freshMax);
     }
 
     void WinInst::RefreshLayout(bool layout, bool sashes, bool freshMax)
@@ -458,7 +458,7 @@ namespace WinMux
                     { 
                         n->titlebar->Show();
                         if(n->winHandle != nullptr)
-                            ShowWindow(n->winHandle, SW_SHOW);
+                            ::ShowWindow(n->winHandle, SW_SHOW);
                     }
                     else if(n->type == NodeType::Tabs)
                     {
@@ -480,13 +480,13 @@ namespace WinMux
                         {
 						    n->titlebar->Show();
                             if(n->winHandle != nullptr)
-                                ShowWindow(n->winHandle, SW_SHOW);
+                                ::ShowWindow(n->winHandle, SW_SHOW);
                         }
                         else
                         {
 						    n->titlebar->Hide();
                             if(n->winHandle != nullptr)
-                                ShowWindow(n->winHandle, SW_HIDE);
+                                ::ShowWindow(n->winHandle, SW_HIDE);
                         }
                     }
                     else if(n->type == NodeType::Tabs)
@@ -635,7 +635,7 @@ namespace WinMux
         if(recurse)
         {
             for(Node* child : containerNode->children)
-                UpdateContainerSashes(child, true);
+                this->UpdateContainerSashes(child, true);
         }
     }
 
@@ -822,7 +822,7 @@ namespace WinMux
     {
         if(node->winHandle != NULL)
         {
-            SetWindowPos(
+            ::SetWindowPos(
                 node->winHandle, 
                 NULL, 
                 node->pos.x, 
@@ -906,10 +906,10 @@ namespace WinMux
 
             this->root = nullptr;
             this->nodes.erase(node);
-            FlagDirty(true, true);
+            this->FlagDirty(true, true);
             // TODO: Set layout dirty
 
-            assert(VALI());
+            assert(this->VALI());
             return true;
         }
 
@@ -939,10 +939,10 @@ namespace WinMux
         }
 
         // Fixup hierarchy if needed
-        CleanContainerNodeIfEmpty(oldParent);
+        this->CleanContainerNodeIfEmpty(oldParent);
         this->draggedSash = nullptr;
 
-        assert(VALI());
+        assert(this->VALI());
         return true;
     }
 
@@ -976,7 +976,7 @@ namespace WinMux
 
                 CleanContainerNodeIfEmpty(oldParent);
             }
-            assert(VALI());
+            assert(this->VALI());
             return;
         }
 
@@ -1009,9 +1009,9 @@ namespace WinMux
                 containerNode->children.clear();
 			    delete containerNode;
 			    this->nodes.erase(containerNode);
-                CleanContainerNodeIfEmpty(oldParent);
+                this->CleanContainerNodeIfEmpty(oldParent);
             }
-            assert(VALI());
+            assert(this->VALI());
             return;
         }
 
@@ -1052,7 +1052,7 @@ namespace WinMux
                 collidingTypeChild->children.clear();
                 delete collidingTypeChild;
             }
-            assert(VALI());
+            assert(this->VALI());
             return; // Not needed, but to match the conventions of returning everywhere else.
         }
     }
@@ -1113,12 +1113,12 @@ namespace WinMux
             // the overhead is negligible, and it also forces to check the
             // validity of things that are more appropriately validated in
             // that overload.
-            CloseManagedWindow(winNode->winHandle);
+            this->CloseManagedWindow(winNode->winHandle);
         }
         else if(winNode->process != nullptr)
         {
             // Same notes as above comment.
-            CancelManagedWindow(winNode->process);
+            this->CancelManagedWindow(winNode->process);
         }
         else
         {
@@ -1132,13 +1132,13 @@ namespace WinMux
 
 		if (winNode->winHandle != nullptr)
 		{
-            SendMessage(winNode->winHandle , WM_CLOSE, 0, 0);
+            ::SendMessage(winNode->winHandle , WM_CLOSE, 0, 0);
             this->RemoveWinNode(winNode);
 		}
 		else if (winNode->process != nullptr)
 		{
 			// Same notes as above comment.
-			CancelManagedWindow(winNode->process);
+			this->CancelManagedWindow(winNode->process);
 		}
 		else
 		{
@@ -1152,15 +1152,15 @@ namespace WinMux
         {
             HWND oldHwnd = winNode->winHandle;
 
-            RemoveWinNode(winNode);
+            this->RemoveWinNode(winNode);
             assert(this->hwndToNodes.find(oldHwnd) == this->hwndToNodes.end());
 
             DWORD processId;
-            DWORD threadId = GetWindowThreadProcessId(oldHwnd, &processId);
+            DWORD threadId = ::GetWindowThreadProcessId(oldHwnd, &processId);
             if(threadId != 0)
             {
                 assert(processId != 0);
-				HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, processId);
+				HANDLE hProcess = ::OpenProcess(PROCESS_TERMINATE, FALSE, processId);
 				if (hProcess == NULL) 
                 {
                     // !TODO: This the correct error output we're going with?
@@ -1170,13 +1170,13 @@ namespace WinMux
                 // This is overkill in that it destroys the entire process, even if the
                 // window is a child window of a bigger app (e.g., killing all of Steam
                 // if just a chat window was being managed).
-				TerminateProcess(hProcess, 0);
-				CloseHandle(hProcess);
+				::TerminateProcess(hProcess, 0);
+				::CloseHandle(hProcess);
             }
         }
         else if(winNode->process != nullptr)
         {
-            CancelManagedWindow(winNode->process);
+            this->CancelManagedWindow(winNode->process);
         }
         else
         {
@@ -1191,7 +1191,7 @@ namespace WinMux
 
 		// Send a message for it to close, and we'll get rid of the window
 		// node when we intercept the EVENT_OBJECT_DESTROY hook event.
-		PostMessage(hwnd, WM_CLOSE, 0, 0);
+		::PostMessage(hwnd, WM_CLOSE, 0, 0);
     }
 
 	void WinInst::CancelManagedWindow(HANDLE process)
@@ -1199,15 +1199,15 @@ namespace WinMux
         auto it = this->processToNodes.find(process);
         assert(it != this->processToNodes.end());
 
-        TerminateProcess(process, 0);
-        RemoveWinNode(it->second.node);
+		::TerminateProcess(process, 0);
+		this->RemoveWinNode(it->second.node);
 
         assert(this->processToNodes.find(process) == this->processToNodes.end());
     }
 
     WinInst* WinInst::DetachManagedWindow(Node* winNode)
     {
-        RemoveWinNode(winNode, false);
+        this->RemoveWinNode(winNode, false);
         winNode->CleanSupportingUI();
 
         WinInst* newWinInst = this->appOwner->SpawnInst();
@@ -1230,8 +1230,8 @@ namespace WinMux
         { 
             ::SetParent(oldHwnd, nullptr);
             // TODO: Make sure the filter stuff out like "Minimized" and "Maximized"
-		    SetWindowLong(oldHwnd, GWL_STYLE, origStyle);
-		    SetWindowLong(oldHwnd, GWL_EXSTYLE, origExStyle);
+		    ::SetWindowLong(oldHwnd, GWL_STYLE, origStyle);
+		    ::SetWindowLong(oldHwnd, GWL_EXSTYLE, origExStyle);
 
             wxPoint mousePos = wxGetMousePosition();
 
@@ -1421,7 +1421,7 @@ namespace WinMux
                 if(cacheOrigWinProperties)
                     this->CacheOrigHWNDProperties(node);
 
-                ReparentNodeHWNDIntoLayout(node);
+                this->ReparentNodeHWNDIntoLayout(node);
                 this->hwndToNodes[node->winHandle] = node;
             }
             else if(node->process != nullptr)
@@ -1439,7 +1439,7 @@ namespace WinMux
 			{
                 node->titlebar->Show(false);
 				if (node->winHandle != nullptr)
-					ShowWindow(node->winHandle, SW_HIDE);
+					::ShowWindow(node->winHandle, SW_HIDE);
 			}
         }
         else if(node->type == NodeType::Tabs)
@@ -1459,17 +1459,17 @@ namespace WinMux
 		
         // !TODO: Distribute some of this responsibility to Node
 		RECT windowSize;
-		GetWindowRect(node->winHandle, &windowSize);
+		::GetWindowRect(node->winHandle, &windowSize);
 		node->origSize =
 			wxSize(
 				windowSize.right - windowSize.left,
 				windowSize.bottom - windowSize.top);
 
-		node->origStyle = GetWindowLong(node->winHandle, GWL_STYLE);
-		node->origExStyle = GetWindowLong(node->winHandle, GWL_EXSTYLE);
+		node->origStyle     = ::GetWindowLong(node->winHandle, GWL_STYLE);
+		node->origExStyle   = ::GetWindowLong(node->winHandle, GWL_EXSTYLE);
 
-        assert(!hwndToNodes.contains(node->winHandle));
-        hwndToNodes[node->winHandle] = node;
+        assert(!this->hwndToNodes.contains(node->winHandle));
+        this->hwndToNodes[node->winHandle] = node;
     }
 
     void WinInst::ReparentNodeHWNDIntoLayout(Node* node)
@@ -1485,8 +1485,8 @@ namespace WinMux
 		LONG newExStyle = node->origExStyle;
 		newExStyle &= ~(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE);
 		//
-		SetWindowLong(node->winHandle, GWL_STYLE, newStyle);
-		SetWindowLong(node->winHandle, GWL_EXSTYLE, newExStyle);
+		::SetWindowLong(node->winHandle, GWL_STYLE, newStyle);
+		::SetWindowLong(node->winHandle, GWL_EXSTYLE, newExStyle);
     }
 
 	void WinInst::OnWinEvent_TitleChanged(HWND hwnd)
@@ -1548,7 +1548,7 @@ namespace WinMux
     void WinInst::OnSizeEvent(wxSizeEvent& event)
     {
         event.Skip(true);
-        RefreshLayout(true, true, false);
+        this->RefreshLayout(true, true, false);
     }
 
     void WinInst::OnPaintEvent(wxPaintEvent& event)
@@ -1567,7 +1567,7 @@ namespace WinMux
 
         wxPoint mousePos = event.GetPosition();
         if(dragState != MouseDragState::DraggingSash)
-            ProcessMousePointForSash(mousePos);
+            this->ProcessMousePointForSash(mousePos);
 
         if(this->HasCapture() && this->draggedSash != nullptr)
         {
@@ -1690,7 +1690,7 @@ namespace WinMux
         this->RefreshLayout();
 
         if(dragState != MouseDragState::DraggingSash)
-            ProcessMousePointForSash(event.GetPosition());
+            this->ProcessMousePointForSash(event.GetPosition());
     }
 
 	void WinInst::OnMouseLeaveEvent(wxMouseEvent& /*event*/)
@@ -1704,7 +1704,7 @@ namespace WinMux
         std::set<HANDLE> processesToRm;
         for(auto kvp : processToNodes)
         {
-            DWORD waitRet = WaitForInputIdle(kvp.first, 0);
+            DWORD waitRet = ::WaitForInputIdle(kvp.first, 0);
             if(waitRet == WAIT_FAILED)
             { 
                 processesToRm.insert(kvp.first);
@@ -1715,19 +1715,19 @@ namespace WinMux
 
             if(kvp.second.awaitedForIdleInput && !kvp.second.invalid)
             {
-                DWORD processId = GetProcessId(kvp.first);
+                DWORD processId = ::GetProcessId(kvp.first);
                 HWND hwnd = nullptr;
 
                 Node* n = kvp.second.node;
                 auto passInParams = std::make_pair(processId, n);
-				EnumWindows(
+				::EnumWindows(
                     [](HWND hwnd, LPARAM lParam) -> BOOL 
                     {
                         auto* data = (std::pair<DWORD, Node*>*)lParam;
 					    DWORD pid = 0;
-					    GetWindowThreadProcessId(hwnd, &pid);
+					    ::GetWindowThreadProcessId(hwnd, &pid);
 
-						if (pid == data->first && IsWindowVisible(hwnd) && ::GetParent(hwnd) == nullptr)
+						if (pid == data->first && ::IsWindowVisible(hwnd) && ::GetParent(hwnd) == nullptr)
 						{
                             data->second->winHandle = hwnd;
 							return FALSE;
@@ -1739,7 +1739,7 @@ namespace WinMux
                 if(n->winHandle != nullptr)
                 {
                     processesToRm.insert(n->process);
-                    CloseHandle(n->process);
+                    ::CloseHandle(n->process);
                     kvp.second.node->process = nullptr;
 
                     this->CacheOrigHWNDProperties(n);
@@ -1754,9 +1754,9 @@ namespace WinMux
         // timers
 
         for(HANDLE toRm : processesToRm)
-            processToNodes.erase(toRm);
+            this->processToNodes.erase(toRm);
 
-        if(processToNodes.size() > 0)
+        if(this->processToNodes.size() > 0)
         {
             const Context& ctx = this->appOwner->GetLayoutContext();
             this->awaitGUITimer.Start(ctx.millisecondsAwaitGUI, true);
@@ -1765,13 +1765,13 @@ namespace WinMux
 
     void WinInst::OnTimerEvent_RefreshLayout(wxTimerEvent& event)
     {
-		RefreshLayout();
-        Refresh();
+		this->RefreshLayout();
+        this->Refresh();
     }
 
     void WinInst::OnExit(wxCommandEvent& /*event*/)
     {
-        Close(true);
+        this->Close(true);
     }
 
     void WinInst::OnAbout(wxCommandEvent& /*event*/)
@@ -1783,50 +1783,50 @@ namespace WinMux
 	void WinInst::OnMenu_TestAddTop(wxCommandEvent& event)
     {
         //if (Dock(L"paint", this->root, DockDir::Top, -1) != nullptr)
-        if (Dock(L"notepad", this->root, DockDir::Top, -1) != nullptr)
-			Refresh();
+        if (this->Dock(L"notepad", this->root, DockDir::Top, -1) != nullptr)
+			this->Refresh();
 
-        assert(VALI());
+        assert(this->VALI());
     }
 
 	void WinInst::OnMenu_TestAddLeft(wxCommandEvent& event)
     {
-		if (Dock(L"mspaint", this->root, DockDir::Left, -1) != nullptr)
+		if (this->Dock(L"mspaint", this->root, DockDir::Left, -1) != nullptr)
 			Refresh();
 
-        assert(VALI());
+        assert(this->VALI());
     }
 
 	void WinInst::OnMenu_TestAddBottom(wxCommandEvent& event)
     {
-		if (Dock(L"mspaint", this->root, DockDir::Bottom, -1) != nullptr)
+		if (this->Dock(L"mspaint", this->root, DockDir::Bottom, -1) != nullptr)
 			Refresh();
 
-        assert(VALI());
+        assert(this->VALI());
     }
 
 	void WinInst::OnMenu_TestAddRight(wxCommandEvent& event)
     {
-		if (Dock(L"notepad", this->root, DockDir::Right, -1) != nullptr) // TODO: Figure out how to get rid of the wchar_t cast
+		if (this->Dock(L"notepad", this->root, DockDir::Right, -1) != nullptr) // TODO: Figure out how to get rid of the wchar_t cast
 			Refresh();
 
-        assert(VALI());
+        assert(this->VALI());
     }
 
     void WinInst::OnMenu_CreateDebugSetup(wxCommandEvent& event)
     {
-        Dock(L"notepad", this->root, DockDir::Top, -1);
-        Dock(L"notepad", this->root, DockDir::Left, -1);
-        Dock(L"notepad", this->root, DockDir::Bottom, -1);
-        Dock(L"notepad", this->root, DockDir::Right, -1);
-        Dock(L"notepad", this->root, DockDir::Top, -1);
+        this->Dock(L"notepad", this->root, DockDir::Top, -1);
+        this->Dock(L"notepad", this->root, DockDir::Left, -1);
+        this->Dock(L"notepad", this->root, DockDir::Bottom, -1);
+        this->Dock(L"notepad", this->root, DockDir::Right, -1);
+        this->Dock(L"notepad", this->root, DockDir::Top, -1);
     }
 
     void WinInst::OnMenu_CreateDebugTabSetup(wxCommandEvent& event)
     {
-		Dock(L"notepad", this->root, DockDir::Top, -1);
-		Node* botNode = Dock(L"notepad", this->root, DockDir::Bottom, -1);
-		Dock(L"notepad", botNode, DockDir::Into, -1);
+		this->Dock(L"notepad", this->root, DockDir::Top, -1);
+		Node* botNode = this->Dock(L"notepad", this->root, DockDir::Bottom, -1);
+		this->Dock(L"notepad", botNode, DockDir::Into, -1);
     }
 
 	void WinInst::OnMenu_CloseMode_Destroy(wxCommandEvent& event)

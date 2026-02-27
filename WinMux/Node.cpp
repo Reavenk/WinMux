@@ -343,7 +343,7 @@ namespace WinMux
 				// SWP_NOSENDCHANGING to override minimum size constraint.
 				// Although may not be enough for all cases of WM_GETMINMAXINFO
 				::ShowWindow(this->winHandle, SW_SHOW);
-				SetWindowPos(
+				::SetWindowPos(
 					this->winHandle,
 					NULL,
 					manualPos.x,
@@ -394,7 +394,7 @@ namespace WinMux
 
 		const int stringBufferLen = 128;
 		wchar_t stringBuffer[stringBufferLen];
-		bool filledText = GetWindowText(this->winHandle, stringBuffer, stringBufferLen) != 0;
+		bool filledText = ::GetWindowText(this->winHandle, stringBuffer, stringBufferLen) != 0;
 		wxString titleText = filledText ? stringBuffer : (wchar_t*)L"...";
 		titleText << "(" << wxString::Format(wxT("%i"), (int)this->debugID) << ")";
 		return titleText;

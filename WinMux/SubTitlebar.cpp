@@ -94,7 +94,7 @@ namespace WinMux
 		wxBrush brush(ToWxColor(bgFillColor));
 		dc.SetBrush(brush);
 		
-		wxRect wxr = GetClientRect();
+		wxRect wxr = this->GetClientRect();
 		gc->SetPen(*wxTRANSPARENT_PEN);
 		dc.SetPen(*wxTRANSPARENT_PEN);
 		dc.DrawRectangle(wxr);
@@ -105,8 +105,8 @@ namespace WinMux
 			wxRect clientRect = this->GetClientRect();
 			// System icon
 			//////////////////////////////////////////////////
-			wxRect sysRgn = GetFeatureRgn(clientRect, Feature::SysIcon, ctx);
-			HICON hIcon = (HICON)GetClassLongPtr(this->node->winHandle, GCLP_HICON);
+			wxRect sysRgn = this->GetFeatureRgn(clientRect, Feature::SysIcon, ctx);
+			HICON hIcon = (HICON)::GetClassLongPtr(this->node->winHandle, GCLP_HICON);
 			::DrawIconEx(
 				dc.GetHDC(), 
 				sysRgn.x + (sysRgn.width - ctx.titleSysBoxIconDim) / 2, 
@@ -120,7 +120,7 @@ namespace WinMux
 
 			// Title
 			//////////////////////////////////////////////////
-			wxRect titleRgn = GetFeatureRgn(clientRect, Feature::Text, ctx);
+			wxRect titleRgn = this->GetFeatureRgn(clientRect, Feature::Text, ctx);
 			wxFont titleFont(ctx.titleFontSize, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_LIGHT, false);
 			dc.SetFont(titleFont);
 			wxString titleText = this->node->GetWindowString();
@@ -137,7 +137,7 @@ namespace WinMux
 				this->currentClickedDown == Feature::PulldownButton,
 				this->currentHoverFeature == Feature::PulldownButton);
 
-			wxRect winOptsRgn = GetFeatureRgn(clientRect, Feature::PulldownButton, ctx);
+			wxRect winOptsRgn = this->GetFeatureRgn(clientRect, Feature::PulldownButton, ctx);
 			//dc.DrawRectangle(winOptsRgn);
 			wxBrush btnPullDownBrush(ToWxColor(pulldownColor));
 			//dc.SetBrush(blueBrush);
@@ -198,7 +198,7 @@ namespace WinMux
 	wxRect SubTitlebar::GetFeatureRgn(const wxRect& entireRgn, Feature f)
 	{
 		const Context& ctx = this->GetAppContext();
-		return GetFeatureRgn(entireRgn, f, ctx);
+		return this->GetFeatureRgn(entireRgn, f, ctx);
 	}
 
 	wxRect SubTitlebar::GetFeatureRgn(const wxRect& entireRgn, Feature f, const Context& ctx)
@@ -250,14 +250,14 @@ namespace WinMux
 
 	SubTitlebar::Feature SubTitlebar::GetFeature(const wxPoint & pt)
 	{
-		wxRect clientRgn = GetClientSize();
+		wxRect clientRgn = this->GetClientSize();
 
 		for(
 			Feature f = (Feature)0; 
 			f < Feature::Totalnum; 
 			f = (Feature)((int)f + 1))
 		{
-			wxRect rgn = GetFeatureRgn(clientRgn, f);
+			wxRect rgn = this->GetFeatureRgn(clientRgn, f);
 			if(rgn.Contains(pt))
 				return f;
 		}
@@ -293,7 +293,7 @@ namespace WinMux
 		this->HandleMouseTooltip(evt.GetPosition());
 
 		this->isHoveredOverBar = true;
-		Refresh();
+		this->Refresh();
 	}
 
 	void SubTitlebar::OnMouseLeaveEvent(wxMouseEvent& evt)
@@ -302,7 +302,7 @@ namespace WinMux
 		this->currentClickedDown = Feature::Null;
 		this->currentHoverFeature = Feature::Null;
 		this->isHoveredOverBar = false;
-		Refresh();
+		this->Refresh();
 	}
 
 	void SubTitlebar::OnMouseMotionEvent(wxMouseEvent& evt)
@@ -332,7 +332,7 @@ namespace WinMux
 						App* app = this->winOwner->GetAppOwner();
 						// TODO: What about loading processes?
 						this->winOwner->ReleaseManagedWindow(this->node);
-						SetWindowPos(origHwnd, HWND_TOP, origScreenPos.x, origScreenPos.y, 0, 0, SWP_NOSIZE|SWP_NOACTIVATE);
+						::SetWindowPos(origHwnd, HWND_TOP, origScreenPos.x, origScreenPos.y, 0, 0, SWP_NOSIZE|SWP_NOACTIVATE);
 						wxPoint cursorPos = wxGetMousePosition();
 						PostMessage(origHwnd, WM_NCLBUTTONDOWN, HTCAPTION, MAKELPARAM(cursorPos.x, cursorPos.y));
 					}
@@ -349,7 +349,7 @@ namespace WinMux
 			}
 		}
 		if(refresh)
-			Refresh();
+			this->Refresh();
 	}
 
 	void SubTitlebar::OnMouseLeftDownEvent(wxMouseEvent& evt)
@@ -376,17 +376,17 @@ namespace WinMux
 			this->CaptureMouse();
 			break;
 		}
-		Refresh();
+		this->Refresh();
 	}
 
 	void SubTitlebar::OnMouseLeftUpEvent(wxMouseEvent& evt)
 	{
 		wxPoint mousePos = evt.GetPosition();
-		Feature f = HandleMouseTooltip(mousePos);
+		Feature f = this->HandleMouseTooltip(mousePos);
 		if(f != this->currentClickedDown)
 			this->currentClickedDown = Feature::Null;
 
-		Refresh();
+		this->Refresh();
 
 		if(this->HasCapture())
 		{
@@ -405,15 +405,15 @@ namespace WinMux
 					int x, y;
 					this->DoGetScreenPosition(&x, &y);;
 					wxRect clientRgn = this->GetClientRect();
-					wxRect sysIconRgn = GetFeatureRgn(clientRgn, Feature::SysIcon);
-					HMENU sysMenu = GetSystemMenu(this->node->winHandle, FALSE);
+					wxRect sysIconRgn = this->GetFeatureRgn(clientRgn, Feature::SysIcon);
+					HMENU sysMenu = ::GetSystemMenu(this->node->winHandle, FALSE);
 					if (sysMenu != nullptr)
 					{ 
 						// The Node's HWND isn't going to automatically work as the owner.
 						// So we own the menu, but track with TPM_RETURNCMD - and send the
 						// system menu message manually afterwards.
 						int retval = 
-							TrackPopupMenu(
+							::TrackPopupMenu(
 								sysMenu, 
 								TPM_LEFTALIGN|TPM_RETURNCMD, 
 								x + sysIconRgn.x, 
@@ -461,7 +461,7 @@ namespace WinMux
 	void SubTitlebar::OnMouseLeftDoubleClickEvent(wxMouseEvent& evt)
 	{
 		wxPoint mousePos = evt.GetPosition();
-		Feature f = HandleMouseTooltip(mousePos);
+		Feature f = this->HandleMouseTooltip(mousePos);
 		if(f == Feature::Text)
 			this->winOwner->SetWinNodeMaximized(this->node);
 	}

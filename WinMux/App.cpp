@@ -68,9 +68,9 @@ namespace WinMux
 		}
 		//this->taskbarIcon->ShowBalloon("Testing", "Testing testing");
 
-		hook_titleChange = SetWinEventHook(EVENT_OBJECT_NAMECHANGE, EVENT_OBJECT_NAMECHANGE, nullptr, Hook_OnTitleChanged, 0, 0, 0);
-		hook_windowClosed = SetWinEventHook(EVENT_OBJECT_DESTROY, EVENT_OBJECT_DESTROY, nullptr, Hook_OnWindowClosed, 0, 0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
-		hook_dragWindow = SetWinEventHook(EVENT_SYSTEM_MOVESIZESTART, EVENT_SYSTEM_MOVESIZEEND, nullptr, Hook_OnWindowDragEvts, 0, 0, WINEVENT_OUTOFCONTEXT);
+		hook_titleChange    = ::SetWinEventHook(EVENT_OBJECT_NAMECHANGE, EVENT_OBJECT_NAMECHANGE, nullptr, Hook_OnTitleChanged, 0, 0, 0);
+		hook_windowClosed   = ::SetWinEventHook(EVENT_OBJECT_DESTROY, EVENT_OBJECT_DESTROY, nullptr, Hook_OnWindowClosed, 0, 0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
+		hook_dragWindow     = ::SetWinEventHook(EVENT_SYSTEM_MOVESIZESTART, EVENT_SYSTEM_MOVESIZEEND, nullptr, Hook_OnWindowDragEvts, 0, 0, WINEVENT_OUTOFCONTEXT);
 
 		return true;
 	}
@@ -296,7 +296,7 @@ namespace WinMux
             if(globalRect.Contains(event.mousePos))
                 dropDst.win->Dock(event.hwnd, nullptr, dropDst.node, dropDst.dockDir, 0);
         }
-        hwndBeingDragged = nullptr;
+        this->hwndBeingDragged = nullptr;
     }
 
     void App::OnDragWin_Motion(DragWinNoticeEvent & event)
@@ -529,10 +529,10 @@ namespace WinMux
         // Custom extra flags, or else (for some unknown reason) it will 
         // constantly steal focus when being shown - but ONLY AFTER a 
         // window has been docked before on a window.
-        HWND selfHwnd = GetHWND();
-		LONG ex = GetWindowLong(selfHwnd, GWL_EXSTYLE);
-		SetWindowLong(selfHwnd, GWL_EXSTYLE, ex | WS_EX_NOACTIVATE);
+        HWND selfHwnd = this->GetHWND();
+		LONG ex = ::GetWindowLong(selfHwnd, GWL_EXSTYLE);
+		::SetWindowLong(selfHwnd, GWL_EXSTYLE, ex | WS_EX_NOACTIVATE);
 
-        SetTransparent(128);
+        this->SetTransparent(128);
     }
 }

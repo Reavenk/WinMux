@@ -21,7 +21,7 @@ namespace WinMux
 		// resource system than wxWidgets.
 
 		HICON hIcon =
-			(HICON)LoadImage(
+			(HICON)::LoadImage(
 				GetModuleHandle(0),
 				MAKEINTRESOURCE(resourceID),
 				IMAGE_ICON,
@@ -30,7 +30,7 @@ namespace WinMux
 				LR_LOADTRANSPARENT);
 
 		// https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-seticon
-		SendMessage(
+		::SendMessage(
 			win->GetHWND(),
 			WM_SETICON,
 			large ? ICON_BIG : ICON_SMALL,
@@ -51,13 +51,12 @@ namespace WinMux
 
 	void SetWindowTransparency(HWND hwnd, int alpha)
 	{
-		LONG style = GetWindowLong(hwnd, GWL_EXSTYLE);
-		SetWindowLong(hwnd, GWL_EXSTYLE, style | WS_EX_LAYERED);
+		LONG style = ::GetWindowLong(hwnd, GWL_EXSTYLE);
+		::SetWindowLong(hwnd, GWL_EXSTYLE, style | WS_EX_LAYERED);
 
-		if (!SetLayeredWindowAttributes(hwnd, 0, alpha, LWA_ALPHA))
+		if (!::SetLayeredWindowAttributes(hwnd, 0, alpha, LWA_ALPHA))
 		{
-			//DWORD error = GetLastError();
-			wxLogDebug("Could not set window transparency for DragPreviewOlyWin");
+			wxLogDebug("Could not set window transparency for window");
 		}
 	}
 }

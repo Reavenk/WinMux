@@ -51,7 +51,7 @@ namespace WinMux
 
 		//	BACKGROUND FILL
 		//////////////////////////////////////////////////
-		wxRect clientRect = GetClientRect();
+		wxRect clientRect = this->GetClientRect();
 		dc.SetBrush(ToWxColor(ctx.color_tabsBG));
 		dc.SetPen(*wxTRANSPARENT_PEN);
 		dc.DrawRectangle(clientRect);
@@ -168,7 +168,7 @@ namespace WinMux
 				// active node is drawn on a painted layer on top
 				continue;
 			}
-			wxRect tabRgn = GetTabRect(clientRect, i);
+			wxRect tabRgn = this->GetTabRect(clientRect, i);
 			$_::DrawTabBack(
 				this->node->children[i], 
 				dc,
@@ -190,7 +190,7 @@ namespace WinMux
 			wxBrush(ToWxColor(ctx.btncol_Tabs.pressed)));
 
 		gc->SetBrush(wxBrush(ToWxColor(ctx.btncols_WinTitle.normal)));
-		wxRect tabFrontRgn = GetTabRect(clientRect, activeIdx);
+		wxRect tabFrontRgn = this->GetTabRect(clientRect, activeIdx);
 		$_::DrawTabFront(
 			this->node->children[activeIdx],
 			dc,
@@ -228,7 +228,7 @@ namespace WinMux
 
 	int SubTabs::GetTabIndexAt(const wxPoint& pos)
 	{
-		wxRect clientRect = GetClientRect();
+		wxRect clientRect = this->GetClientRect();
 		for (size_t i = 0; i < this->node->children.size(); ++i)
 		{
 			wxRect tabRgn = this->GetTabRect(clientRect, i);
@@ -270,20 +270,20 @@ namespace WinMux
 	void SubTabs::OnMouseEnterEvent(wxMouseEvent& evt)
 	{
 		Node* hoveredTab = GetTabNodeAt(evt.GetPosition());
-		SetHoveredTabNode(hoveredTab);
+		this->SetHoveredTabNode(hoveredTab);
 	}
 
 	void SubTabs::OnMouseLeaveEvent(wxMouseEvent& evt)
 	{
-		SetHoveredTabNode(nullptr);
+		this->SetHoveredTabNode(nullptr);
 	}
 
 	void SubTabs::OnMouseMotionEvent(wxMouseEvent& evt)
 	{
 		Node* hoveredTab = GetTabNodeAt(evt.GetPosition());
-		SetHoveredTabNode(hoveredTab);
+		this->SetHoveredTabNode(hoveredTab);
 
-		if(HasCapture() && this->clickCandidate != nullptr)
+		if(this->HasCapture() && this->clickCandidate != nullptr)
 		{
 			const Context& ctx = this->winOwner->GetAppContext();
 			wxPoint mousePos = evt.GetPosition();
@@ -302,16 +302,16 @@ namespace WinMux
 				App* app = this->winOwner->GetAppOwner();
 				// TODO: What about loading processes?
 				this->winOwner->ReleaseManagedWindow(winToPop);
-				SetWindowPos(origHwnd, HWND_TOP, origScreenPos.x, origScreenPos.y, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
+				::SetWindowPos(origHwnd, HWND_TOP, origScreenPos.x, origScreenPos.y, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
 				wxPoint cursorPos = wxGetMousePosition();
-				PostMessage(origHwnd, WM_NCLBUTTONDOWN, HTCAPTION, MAKELPARAM(cursorPos.x, cursorPos.y));
+				::PostMessage(origHwnd, WM_NCLBUTTONDOWN, HTCAPTION, MAKELPARAM(cursorPos.x, cursorPos.y));
 			}
 		}
 	}
 
 	void SubTabs::OnMouseLeftDownEvent(wxMouseEvent& evt)
 	{
-		Node* hoveredOn = GetTabNodeAt(evt.GetPosition());
+		Node* hoveredOn = this->GetTabNodeAt(evt.GetPosition());
 		this->SetHoveredTabNode(hoveredOn);
 		this->SetClickCandidateTabNode(hoveredOn);
 		this->originalClickedPos = evt.GetPosition();
@@ -328,7 +328,7 @@ namespace WinMux
 
 			if(origClickCandidate != nullptr)
 			{ 
-				int idxOver = GetTabIndexAt(evt.GetPosition());
+				int idxOver = this->GetTabIndexAt(evt.GetPosition());
 				if (idxOver != -1)
 				{
 					if( this->node->children[idxOver] == origClickCandidate && 
@@ -337,7 +337,7 @@ namespace WinMux
 						const Context& ctx = this->winOwner->GetAppContext();
 						this->node->activeTab = idxOver;
 						this->node->ApplyCachedlayout(ctx);
-						Refresh();
+						this->Refresh();
 					}
 				}
 			}
