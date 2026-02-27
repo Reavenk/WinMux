@@ -144,58 +144,88 @@ namespace WinMux
         }
     }
 
-    OverlapDropDst App::OverlayDropAll(const wxPoint& globalMousePos, HWND hwndIgnoreTopLevel)
+    OverlapDropDst App::OverlayDropAll(const wxPoint& globalMousePos, HWND hwndDropFor)
     {
 		wxPoint mousePos = wxGetMousePosition();
 
+        HWND hwndOlyDrop = (this->olyDropPreview != nullptr) ? this->olyDropPreview->GetHWND() : nullptr;
         POINT posAsPt{globalMousePos.x, globalMousePos.y};
-		for (HWND hwnd = ::GetTopWindow(nullptr);
+        // There's large invisible windows everywhere on the very top.
+        // Instead of trying to sort them out and carve out exceptions
+        // for them, we just start occlusion testing below the thing
+        // being dragged (which should be on top of the Z-order we
+        // actually care about.
+        HWND hwndAfterDrop = nullptr;
+		for(
+            HWND hwnd = ::GetTopWindow(nullptr);
 			hwnd != nullptr;
-			hwnd = GetWindow(hwnd, GW_HWNDNEXT))
+			hwnd = ::GetWindow(hwnd, GW_HWNDNEXT))
 		{
-            if(this->olyDropPreview != nullptr && hwnd == this->olyDropPreview->GetHWND())
+            if(hwnd == hwndOlyDrop)
                 continue;
+
+			HWND toplevel = GetAncestor(hwnd, GA_ROOT);
+			if (toplevel != hwnd || !IsWindowVisible(toplevel))
+				continue;
                 
             // probably ignoring the window we're dragging, because of course that
             // would occlude
-            if(hwnd == hwndIgnoreTopLevel)
-                continue;
-
-            HWND toplevel = GetAncestor(hwnd, GA_ROOT);
-            if(toplevel != hwnd || !IsWindowVisible(toplevel))
-                continue;
-
-            // Only checking windows that are overlapping or occluding the
-            // mouse position.
-			RECT rc{};
-			if (!GetWindowRect(hwnd, &rc)) 
-                continue;
-		
-            wxRect wxr(rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top);
-            if(!wxr.Contains(globalMousePos))
-                continue;
-
-            // If a normal window, they're blocking our drop.
+            if(hwnd == hwndDropFor)
             {
-                std::lock_guard mutexGuard(this->winRootHwndsMutex);
-                if(!this->winInstRootHwnds.contains(toplevel))
-                    continue;
-                    //return OverlapDropDst::Inactive();
+                hwndAfterDrop = ::GetWindow(hwnd, GW_HWNDNEXT);
+                break;
             }
-            for(WinInst* wi : this->winInsts)
-            { 
-                if(wi->GetHWND() != toplevel)
-                    continue;
+        }
+        if(!hwndAfterDrop)
+            return OverlapDropDst::Inactive();
 
-                // First WinInst directly below is what we're going to drop on to.
-                wxPoint clientMousePos = wi->ScreenToClient(globalMousePos);
-                return wi->GetPreviewDropOverlayDst(clientMousePos);
+        // Check for occlusion, and if we dragged onto a WinInst.
+        for(
+            HWND hwnd = hwndAfterDrop; 
+            hwnd != nullptr; 
+            hwnd = ::GetWindow(hwnd, GW_HWNDNEXT))
+        {
+			if (hwnd == hwndOlyDrop)
+				continue;
+
+			HWND toplevel = GetAncestor(hwnd, GA_ROOT);
+			if (toplevel != hwnd || !IsWindowVisible(toplevel))
+				continue;
+
+			// Only checking windows that are overlapping or occluding the
+			// mouse position.
+			RECT rc{};
+			if (!GetWindowRect(hwnd, &rc))
+                continue;
+
+			wxRect wxr(rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top);
+			if (!wxr.Contains(globalMousePos))
+				continue;
+
+            {
+				std::lock_guard mutexGuard(this->winRootHwndsMutex);
+				if (!this->winInstRootHwnds.contains(toplevel))
+                {
+                    // On top of a non-WinInst window - this occludes any drop
+                    // to any potential WinInst below it.
+					return OverlapDropDst::Inactive();
+                }
             }
-            // Illegal state would only happen if winInstRootHwnds and winInsts
-            // are desynced.
-            ASSERT_REACHED_ILLEGAL_POINT();
-		    return OverlapDropDst::Inactive();
-		}
+
+			for (WinInst* wi : this->winInsts)
+			{
+				if (wi->GetHWND() != toplevel)
+					continue;
+
+				// First WinInst directly below is what we're going to drop on to.
+				wxPoint clientMousePos = wi->ScreenToClient(globalMousePos);
+				return wi->GetPreviewDropOverlayDst(clientMousePos);
+			}
+			// Illegal state would only happen if winInstRootHwnds and winInsts
+			// are desynced.
+			ASSERT_REACHED_ILLEGAL_POINT();
+			return OverlapDropDst::Inactive();
+        }
         return OverlapDropDst::Inactive();
     }
 

@@ -133,7 +133,7 @@ namespace WinMux
         ////////////////////////////////////////////////////////////////////////////////
         void HideDropPreview();
         void CalculateDropPreview(const wxPoint& globalMousePos, HWND hwndIgnoreTopLevel);
-        OverlapDropDst OverlayDropAll(const wxPoint& globalMousePos, HWND hwndIgnoreTopLevel);
+        OverlapDropDst OverlayDropAll(const wxPoint& globalMousePos, HWND hwndDropFor);
 
         ////////////////////////////////////////////////////////////////////////////////
         //
