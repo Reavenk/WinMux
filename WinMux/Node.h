@@ -23,18 +23,23 @@ namespace WinMux
 		wxSize size;
 		wxSize minSize;
 
-		HWND winHandle = nullptr;
-		HANDLE process = nullptr;
 		float prop = 0.0f;
 
-		SubTitlebar* titlebar = nullptr;
+		// Tab Node Stuff
 		SubTabs* tabsBar = nullptr;
+
+		// Windows Node Stuff
+		HWND winHandle = nullptr;
+		HANDLE process = nullptr;
+		SubTitlebar* titlebar = nullptr;
 		int activeTab = 0;
 
 		bool cachedHWNDProperties = false;
 		wxSize origSize;
 		LONG origStyle;
 		LONG origExStyle;
+		wxString cachedAppTitle;
+		wxString customTitle;
 
 	public:
 		Node();
@@ -61,9 +66,13 @@ namespace WinMux
 		float ChildPropTakenUpByAllExcept(Node* a, Node* b);
 
 		wxString GetWindowString();
+		bool CacheWindowString(bool refreshTitlebar);
+		const wxString& GetTitlebarDisplayString();
+		void RefreshTitlebarAndTab();
+
+		void CleanSupportingUI();
 
 		bool VALI(bool recurse);
 		bool VALI_IsFilledWinNode();
-		void CleanSupportingUI();
 	};
 }

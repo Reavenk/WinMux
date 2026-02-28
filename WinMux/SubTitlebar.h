@@ -20,10 +20,13 @@ namespace WinMux
 		};
 		enum IDs
 		{
+			MENU_RenameTitle,
+			MENU_ResetTitle,
+
 			MENU_CloseWindow,
 			MENU_DetachWindow,
 			MENU_ReleaseWindow,
-			MENU_DebugTabClone
+			MENU_DebugTabClone,
 		};
 
 	private:
@@ -60,6 +63,9 @@ namespace WinMux
 		void OnMouseLeftDoubleClickEvent(wxMouseEvent& evt);
 		void OnMouseCaptureChangedEvent(wxMouseCaptureChangedEvent& evt);
 		void OnMouseCaptureLostEvent(wxMouseCaptureLostEvent& evt);
+
+		void OnMenu_RenameTitle(wxCommandEvent& evt);
+		void OnMenu_ResetTitle(wxCommandEvent& evt);
 
 		void OnMenu_CloseWindow(wxCommandEvent& evt);
 		void OnMenu_DetachWindow(wxCommandEvent& evt);

@@ -400,6 +400,50 @@ namespace WinMux
 		return titleText;
 	}
 
+	/// <summary>
+	///		Query and store the HWND's title.
+	/// </summary>
+	/// <param name="refreshTitlebar">
+	///		If true, refreshes the titlebar if a redraw is appropriate.
+	/// </param>
+	/// <returns>
+	///		If true, a refresh was triggered. Can be used as a signal
+	///		that a visual change was necessary, so anything else referencing
+	///		the title outside of the titlebar should also be updated (such
+	///		as the titlebar text on Tabs).
+	/// </returns>
+	bool Node::CacheWindowString(bool refreshTitlebar)
+	{
+		this->cachedAppTitle = this->GetWindowString();
+		if(refreshTitlebar && this->customTitle.IsEmpty())
+		{
+			assert(this->titlebar != nullptr);
+			this->titlebar->Refresh();
+			return true;
+		}
+		return false;
+	}
+
+	const wxString& Node::GetTitlebarDisplayString()
+	{
+		if(!this->customTitle.IsEmpty())
+			return this->customTitle;
+
+		return this->cachedAppTitle;
+	}
+
+	void Node::RefreshTitlebarAndTab()
+	{
+		assert(this->titlebar != nullptr);
+		this->titlebar->Refresh();
+
+		if(this->parent != nullptr && this->parent->type == NodeType::Tabs)
+		{
+			assert(this->parent->tabsBar != nullptr);
+			this->parent->tabsBar->Refresh();
+		}
+	}
+
 	void Node::CleanSupportingUI()
 	{
 		if (this->titlebar != nullptr)

@@ -144,7 +144,7 @@ namespace WinMux
 
 				wxRect textRgn = GetTabFeature(tabRect, TabFeature::Text, ctx);
 				int extentX, extenty;
-				wxString titlebarText = winNode->GetWindowString();
+				wxString titlebarText = winNode->GetTitlebarDisplayString();
 				dc.GetTextExtent(titlebarText, &extentX, &extenty);
 				dc.DrawText(titlebarText, textRgn.x, textRgn.y + (textRgn.height - extenty)/2);
 			}

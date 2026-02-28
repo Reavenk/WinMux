@@ -20,10 +20,14 @@ namespace WinMux
 		EVT_MOUSE_CAPTURE_CHANGED(SubTitlebar::OnMouseCaptureChangedEvent)
 		EVT_MOUSE_CAPTURE_LOST(SubTitlebar::OnMouseCaptureLostEvent)
 
-		EVT_MENU(MENU_CloseWindow, SubTitlebar::OnMenu_CloseWindow)
-		EVT_MENU(MENU_DetachWindow, SubTitlebar::OnMenu_DetachWindow)
-		EVT_MENU(MENU_ReleaseWindow, SubTitlebar::OnMenu_ReleaseWindow)
-		EVT_MENU(MENU_DebugTabClone, SubTitlebar::OnMenu_DebugTabClone)
+
+		EVT_MENU(MENU_RenameTitle,		SubTitlebar::OnMenu_RenameTitle)
+		EVT_MENU(MENU_ResetTitle,		SubTitlebar::OnMenu_ResetTitle)
+
+		EVT_MENU(MENU_CloseWindow,		SubTitlebar::OnMenu_CloseWindow)
+		EVT_MENU(MENU_DetachWindow,		SubTitlebar::OnMenu_DetachWindow)
+		EVT_MENU(MENU_ReleaseWindow,	SubTitlebar::OnMenu_ReleaseWindow)
+		EVT_MENU(MENU_DebugTabClone,	SubTitlebar::OnMenu_DebugTabClone)
 	END_EVENT_TABLE()
 
 	SubTitlebar::SubTitlebar(WinInst* parent, Node* node)
@@ -123,7 +127,7 @@ namespace WinMux
 			wxRect titleRgn = this->GetFeatureRgn(clientRect, Feature::Text, ctx);
 			wxFont titleFont(ctx.titleFontSize, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_LIGHT, false);
 			dc.SetFont(titleFont);
-			wxString titleText = this->node->GetWindowString();
+			wxString titleText = this->node->GetTitlebarDisplayString();
 			wxSize fontPixelSize = titleFont.GetPixelSize();
 			dc.DrawText(
 				titleText, 
@@ -434,11 +438,15 @@ namespace WinMux
 			case Feature::PulldownButton:
 				{
 					wxMenu menu;
-					menu.Append(MENU_DetachWindow, "Detach");
-					menu.Append(MENU_ReleaseWindow, "Release");
+					menu.Append(MENU_RenameTitle,		"Rename Title");
+					if(!this->node->customTitle.IsEmpty())
+						menu.Append(MENU_ResetTitle,	"Reset Title");
 					menu.AppendSeparator();
-					menu.Append(MENU_CloseWindow, "Close");
-					menu.Append(MENU_DebugTabClone, "Clone");
+					menu.Append(MENU_DetachWindow,		"Detach");
+					menu.Append(MENU_ReleaseWindow,		"Release");
+					menu.AppendSeparator();
+					menu.Append(MENU_CloseWindow,		"Close");
+					menu.Append(MENU_DebugTabClone,		"Clone");
 					wxRect btnRgn = this->GetFeatureRgn(this->GetClientRect(), Feature::PulldownButton);
 					this->DoPopupMenu(&menu, btnRgn.x, btnRgn.y + btnRgn.height);
 				}
@@ -471,6 +479,26 @@ namespace WinMux
 
 	void SubTitlebar::OnMouseCaptureLostEvent(wxMouseCaptureLostEvent& evt)
 	{}
+
+	void SubTitlebar::OnMenu_RenameTitle(wxCommandEvent& evt)
+	{
+		// TODO: Register cancel
+		wxString newTitle = wxGetTextFromUser("Title", "Rename the window title", this->node->customTitle, this);
+		if(newTitle == this->node->customTitle)
+			return;
+
+		this->node->customTitle = newTitle;
+		this->node->RefreshTitlebarAndTab();
+	}
+
+	void SubTitlebar::OnMenu_ResetTitle(wxCommandEvent& evt)
+	{
+		if(this->node->customTitle.IsEmpty())
+			return;
+
+		this->node->customTitle = wxString();
+		this->node->RefreshTitlebarAndTab();
+	}
 
 	void SubTitlebar::OnMenu_CloseWindow(wxCommandEvent& evt)
 	{

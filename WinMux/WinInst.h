@@ -81,6 +81,8 @@ namespace WinMux
 			MENU_CreateDebugSetup,
 			MENU_CreateDebugTabSetup,
 
+			MENU_Rename,
+
 			MENU_CloseMode_DestroyAll,
 			MENU_Close_ReleaseAll,
 			MENU_Close_BlockingCloseAll,
@@ -141,12 +143,17 @@ namespace WinMux
 		int dirtyFlags = 0;
 
 		CloseMode closeMode = CloseMode::ReleaseAll;
-		wxMenuItem* menuClose_Destroy = nullptr;
-		wxMenuItem* menuClose_Release = nullptr;
-		wxMenuItem* menuClose_Close = nullptr;
+		wxMenuItem* menuClose_Destroy	= nullptr;
+		wxMenuItem* menuClose_Release	= nullptr;
+		wxMenuItem* menuClose_Close		= nullptr;
+
+		wxMenuItem* menuRename			= nullptr;
+		wxMenuItem* menuResetName		= nullptr;
 
 		Node* maximizedWinNode = nullptr;
 		bool directDestroy = false;
+
+		wxString customTitle;
 
 	private:
 		void RegisterNode(Node* node, bool cacheOrigWinProperties = true);
@@ -311,6 +318,8 @@ namespace WinMux
 		void RefreshLayout(bool layout, bool sashes, bool freshMax);
 		void FlagDirty(bool layout = true, bool sashes = true, bool freshMax = false);
 
+		void SetTitle(const wxString& newTitle);
+
 	public:
 		void OnWinEvent_TitleChanged(HWND hwnd);
 		void OnWinEvent_WindowClosed(HWND hwnd);
@@ -347,6 +356,8 @@ namespace WinMux
 		void OnMenu_TestAddRight(wxCommandEvent& event);
 		void OnMenu_CreateDebugSetup(wxCommandEvent& event);
 		void OnMenu_CreateDebugTabSetup(wxCommandEvent& event);
+
+		void OnMenu_Rename(wxCommandEvent& event);
 
 		void OnMenu_CloseMode_Destroy(wxCommandEvent& event);
 		void OnMenu_CloseMode_Release(wxCommandEvent& event);

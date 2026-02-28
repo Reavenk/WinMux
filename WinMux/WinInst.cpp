@@ -62,6 +62,8 @@ namespace WinMux
         EVT_MENU                    (WinInst::MENU_CreateDebugSetup,        WinInst::OnMenu_CreateDebugSetup)
         EVT_MENU                    (WinInst::MENU_CreateDebugTabSetup,     WinInst::OnMenu_CreateDebugTabSetup)
 
+        EVT_MENU                    (WinInst::MENU_Rename,                  WinInst::OnMenu_Rename)
+
         EVT_MENU                    (WinInst::MENU_CloseMode_DestroyAll,    WinInst::OnMenu_CloseMode_Destroy)
         EVT_MENU                    (WinInst::MENU_Close_ReleaseAll,        WinInst::OnMenu_CloseMode_Release)
         EVT_MENU                    (WinInst::MENU_Close_BlockingCloseAll,  WinInst::OnMenu_CloseMode_Close)
@@ -97,6 +99,8 @@ namespace WinMux
         menuDebug->Append(MENU_CreateDebugTabSetup, "Create Debug Tab Setup");
 
         wxMenu* menuView = new wxMenu;
+        this->menuRename        = menuView->Append(MENU_Rename,                             "Rename");
+        menuView->AppendSeparator();
         this->menuClose_Destroy = menuView->AppendRadioItem(MENU_CloseMode_DestroyAll,      "Close As Destroy All");
         this->menuClose_Release = menuView->AppendRadioItem(MENU_Close_ReleaseAll,          "Close As Release All");
         this->menuClose_Close   = menuView->AppendRadioItem(MENU_Close_BlockingCloseAll,    "Close As Close All");
@@ -147,6 +151,7 @@ namespace WinMux
         }
         this->RefreshCloseModeMenus();
 
+        this->SetTitle(wxString());
         SetDefaultIcons(this);
 	}
 
@@ -793,6 +798,13 @@ namespace WinMux
             this->refreshLayoutTimer.Start(0, true);
     }
 
+    void WinInst::SetTitle(const wxString& newTitle)
+    {
+        wxString title = newTitle.IsEmpty() ? wxString("WinMux Window") : newTitle;
+        this->customTitle = title;
+        this->wxFrame::SetTitle(title);
+    }
+
     const Context& WinInst::GetAppContext()
     {
         return this->appOwner->GetLayoutContext();
@@ -1428,7 +1440,7 @@ namespace WinMux
         nodes.insert(node);
 
         if(node->type == NodeType::Window)
-        {
+        {   
             //assert(node->winHandle != NULL);
             //assert(!hwndToNodes.contains(node->winHandle));
             node->titlebar = new SubTitlebar(this, node);
@@ -1489,6 +1501,8 @@ namespace WinMux
 
         assert(!this->hwndToNodes.contains(node->winHandle));
         this->hwndToNodes[node->winHandle] = node;
+
+        node->CacheWindowString(true);
     }
 
     void WinInst::ReparentNodeHWNDIntoLayout(Node* node)
@@ -1515,12 +1529,13 @@ namespace WinMux
 		assert(winNode->VALI_IsFilledWinNode());
         assert(winNode->winHandle == hwnd);
 
-        // !TODO: re-cache name and refresh display
-		winNode->titlebar->Refresh();
-
-        if(winNode->parent != nullptr && winNode->parent->type == NodeType::Tabs)
-        {
-            winNode->parent->tabsBar->Refresh();
+        if(winNode->CacheWindowString(true))
+        { 
+            if(winNode->parent != nullptr && winNode->parent->type == NodeType::Tabs)
+            { 
+                assert(winNode->parent->tabsBar != nullptr);
+                winNode->parent->tabsBar->Refresh();
+            }
         }
     }
 
@@ -1854,6 +1869,15 @@ namespace WinMux
 		this->Dock(L"notepad", this->root, DockDir::Top, -1);
 		Node* botNode = this->Dock(L"notepad", this->root, DockDir::Bottom, -1);
 		this->Dock(L"notepad", botNode, DockDir::Into, -1);
+    }
+
+	void WinInst::OnMenu_Rename(wxCommandEvent& event)
+    {
+        wxString newTitle = wxGetTextFromUser("Title", "Rename the window title", this->customTitle, this);
+        if(newTitle.IsEmpty())
+            return;
+
+        this->SetTitle(newTitle);
     }
 
 	void WinInst::OnMenu_CloseMode_Destroy(wxCommandEvent& event)
